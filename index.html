@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Brewlog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --y:#ffd100;--yd:#1a1a00;--blk:#1a1a1a;
+  --bg:#f4f3ee;--card:#fff;--surf:#eeede6;
+  --bd:rgba(0,0,0,.09);--bdm:rgba(0,0,0,.15);
+  --tx:#111;--mt:#88887f;
+  --teal:#1D9E75;--teal-bg:#e1f5ee;
+  --amb:#EF9F27;--amb-bg:#faeeda;
+  --blu:#378ADD;--blu-bg:#e6f1fb;
+  --fav-bg:#fffbe6;--fav-tx:#1a1a00;--fav-detail:#5a4e00;
+}
+html.dark{
+  --bg:#111;--card:#1c1c1c;--surf:#252525;
+  --bd:rgba(255,255,255,.08);--bdm:rgba(255,255,255,.16);
+  --tx:#f0f0f0;--mt:#88887f;
+  --teal-bg:#0a2e20;--amb-bg:#2e1f00;--blu-bg:#0d1f33;
+  --fav-bg:#2a2500;--fav-tx:#ffd100;--fav-detail:#b8a000;
+}
+/* field inputs inside brew recipe panel */
+.brew-field{width:100%;font-size:22px;font-weight:700;color:var(--tx);background:none;border:none;outline:none;font-family:'Space Grotesk',system-ui,sans-serif;-moz-appearance:textfield;}
+.brew-field::-webkit-inner-spin-button,.brew-field::-webkit-outer-spin-button{-webkit-appearance:none;}
+.brew-field-box{background:var(--card);border-radius:12px;padding:10px 12px;border:1.5px solid var(--bd);transition:border-color .15s;}
+.brew-field-box:focus-within{border-color:var(--y);}
+.gear-tgl-btn{flex:1;padding:8px 6px;font-size:12px;font-weight:700;border:none;border-radius:8px;background:transparent;color:var(--mt);cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.gear-tgl-btn:hover{color:var(--tx);}
+.gear-tgl-btn.on{background:var(--y);color:var(--yd);}
+.gtb-ico{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;flex-shrink:0;}
+.gtb-ico svg{width:16px;height:16px;}
+.tm-btn{background:transparent;color:var(--mt);}
+.tm-on{background:var(--y)!important;color:var(--yd)!important;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:var(--bg);font-family:'Space Grotesk',system-ui,sans-serif;color:var(--tx);}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:16px 12px;}
+.shell{width:100%;max-width:390px;height:min(820px,calc(100vh - 32px));background:var(--card);border-radius:36px;overflow:hidden;border:1.5px solid var(--bdm);display:flex;flex-direction:column;position:relative;}
+.notch{height:10px;background:var(--surf);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.notch-pill{width:44px;height:4px;border-radius:2px;background:var(--bdm);}
+.screen{flex:1;overflow-y:auto;padding:14px 14px 0;display:none;flex-direction:column;}
+.screen.active{display:flex;}
+.nav{display:flex;justify-content:space-around;padding:10px 0 16px;border-top:1px solid var(--bd);flex-shrink:0;background:var(--card);}
+.nb{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mt);background:none;border:none;cursor:pointer;padding:2px 8px;font-family:'Space Grotesk',system-ui,sans-serif;transition:color .15s;}
+.nb.on{color:var(--blk);}
+.nb.on .np{background:var(--y);}
+.np{width:4px;height:4px;border-radius:50%;background:transparent;transition:background .15s;}
+.nb-brew{background:var(--blk)!important;color:var(--y)!important;border-radius:16px;padding:6px 16px!important;margin-top:-4px;}
+.nb-brew .np{display:none;}
+.nb-brew.on{color:var(--y)!important;}
+.sec-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mt);margin-bottom:8px;display:block;}
+.pill{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.03em;}
+.py{background:var(--y);color:var(--yd);}
+.pt{background:var(--teal-bg);color:var(--teal);}
+.pa{background:var(--amb-bg);color:#854F0B;}
+.pb{background:var(--blu-bg);color:#185FA5;}
+.pg{background:var(--surf);color:var(--mt);}
+.btn-blk{width:100%;padding:13px;font-size:14px;font-weight:700;background:var(--blk);color:var(--y);border:none;border-radius:12px;cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;margin-bottom:8px;}
+.btn-blk:hover{background:#333;}
+.btn-out{width:100%;padding:11px;font-size:13px;font-weight:700;border-radius:12px;border:1.5px solid var(--bdm);background:transparent;color:var(--tx);cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;margin-bottom:6px;}
+.overlay{display:none;position:fixed;inset:0;background:var(--card);z-index:100;flex-direction:column;border-radius:34px;overflow:hidden;max-width:390px;left:50%;transform:translateX(-50%);}
+.overlay.show{display:flex;}
+.ov-hd{padding:14px 16px 0;flex-shrink:0;}
+.ov-back{background:var(--surf);border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--tx);margin-bottom:12px;}
+.ov-body{flex:1;overflow-y:auto;padding:0 16px 24px;}
+
+/* LOG */
+.log-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.new-btn{background:var(--blk);color:var(--y);font-size:13px;font-weight:700;padding:8px 14px;border-radius:10px;border:none;cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;}
+.entry-card{border-radius:14px;border:1.5px solid var(--bd);background:var(--card);margin-bottom:8px;overflow:hidden;cursor:pointer;transition:border-color .2s;}
+.entry-card:hover{border-color:var(--y);}
+.e-top{padding:11px 13px 0;}
+.e-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.e-bean{font-size:14px;font-weight:700;}
+.e-sub{font-size:11px;color:var(--mt);margin-top:2px;}
+.stars{color:var(--y);font-size:13px;letter-spacing:1px;}
+.e-chips{display:flex;gap:5px;flex-wrap:wrap;padding:8px 13px 11px;}
+.e-note{border-top:1px solid var(--bd);padding:9px 13px;font-size:12px;color:var(--mt);font-style:italic;line-height:1.5;}
+.fav-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--y);color:var(--yd);margin-top:4px;}
+
+/* ENTRY DETAIL */
+.ov-bean{font-size:22px;font-weight:700;margin-bottom:4px;}
+.ov-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.stat4{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.s4{background:var(--surf);border-radius:12px;padding:10px 12px;}
+.s4-v{font-size:20px;font-weight:700;line-height:1;}
+.s4-l{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mt);margin-top:3px;}
+.cup-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.cup-box{background:var(--surf);border-radius:12px;padding:10px 12px;}
+.cup-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mt);margin-bottom:6px;}
+.cup-bar-bg{height:6px;background:var(--bd);border-radius:3px;overflow:hidden;}
+.cup-bar-fill{height:6px;border-radius:3px;transition:width .4s;}
+.cup-val{font-size:13px;font-weight:700;margin-top:4px;}
+.flavor-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+.fav-card{border-radius:14px;border:2px solid var(--y);background:var(--fav-bg);padding:13px;margin-bottom:8px;}
+
+/* BREW */
+.ring-wrap{position:relative;width:160px;height:160px;margin:0 auto 8px;}
+.ring-svg{width:160px;height:160px;border-radius:50%;}
+.center-ov{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;width:150px;}
+.c-pour-tag{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mt);display:inline-block;margin-bottom:2px;text-shadow:0 1px 3px rgba(0,0,0,.15);}
+.c-pour-tag.active{background:var(--y);color:var(--yd);padding:2px 10px;border-radius:20px;text-shadow:none;}
+.c-num{font-size:56px;font-weight:700;color:var(--tx);line-height:1;text-shadow:0 1px 4px rgba(0,0,0,.12);transition:color .6s;}
+.c-unit{font-size:13px;font-weight:700;color:var(--mt);text-shadow:0 1px 3px rgba(0,0,0,.1);}
+.cd-badge{display:inline-flex;align-items:center;font-size:12px;font-weight:700;padding:5px 14px;border-radius:20px;font-family:'Space Grotesk',system-ui,sans-serif;}
+.cd-idle{background:var(--surf);color:var(--mt);border:1.5px solid var(--bdm);}
+.cd-wait{background:var(--surf);color:var(--tx);border:1.5px solid var(--bdm);}
+.cd-pour{background:var(--y);color:var(--yd);border:1.5px solid var(--y);}
+.cd-done{background:var(--teal-bg);color:var(--teal);}
+.steps-wrap{display:flex;flex-direction:column;gap:4px;margin-bottom:8px;}
+.step-r{position:relative;display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:10px;border:1.5px solid var(--bd);overflow:hidden;transition:border-color .25s,background .25s;}
+.step-r.active{border-color:var(--y);}
+.step-r.done{opacity:.35;}
+/* progress bar layer sits behind content */
+.step-prog{position:absolute;inset:0;background:var(--y);width:0%;transition:width .95s linear;z-index:0;border-radius:8px;}
+.step-r>*:not(.step-prog){position:relative;z-index:1;}
+.step-idx{width:20px;height:20px;border-radius:50%;background:var(--surf);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--mt);flex-shrink:0;}
+.step-r.active .step-idx{background:var(--blk);color:var(--y);}
+.sn{font-size:12px;font-weight:700;flex:1;}
+.sat{font-size:10px;color:var(--mt);}
+.step-r.active .sn,.step-r.active .sat,.step-r.active .ss{color:var(--yd);}
+.ss{font-size:13px;font-weight:700;}
+.ctrl-row{display:flex;gap:8px;margin-bottom:6px;}
+.c-btn{flex:1;padding:10px;font-size:14px;font-weight:700;border-radius:10px;border:1.5px solid var(--bdm);background:var(--card);color:var(--tx);cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;}
+.c-btn:hover{background:var(--surf);}
+.c-btn.go{background:var(--blk);color:var(--y);border-color:var(--blk);}
+.bot-row{display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--mt);letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;}
+.finish-card{background:var(--y);border-radius:14px;padding:16px;text-align:center;margin-bottom:8px;}
+
+/* GEAR */
+.gear-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--bd);background:var(--card);margin-bottom:0;cursor:pointer;transition:border-color .15s;}
+.gear-item:hover,.gear-item.sel{border-color:var(--y);}
+.gear-item.sel{background:#fffbe6;}
+.gear-ico{width:36px;height:36px;border-radius:10px;background:var(--surf);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.gname{font-size:13px;font-weight:700;}
+.gsub{font-size:11px;color:var(--mt);margin-top:1px;}
+.info-btn{width:28px;height:28px;border-radius:50%;background:var(--surf);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--mt);flex-shrink:0;transition:all .15s;}
+.info-btn:hover{background:var(--y);color:var(--yd);}
+.tip-panel{display:none;background:var(--surf);border-radius:0 0 12px 12px;padding:10px 13px 12px;margin-bottom:8px;border:1.5px solid var(--bd);border-top:none;}
+.tip-panel.show{display:block;}
+.gear-block{margin-bottom:8px;}
+.tip-row{display:flex;gap:6px;margin-bottom:6px;align-items:flex-start;}
+.tip-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.tip-text{font-size:12px;color:var(--mt);line-height:1.5;}
+.tip-text b{color:var(--tx);font-weight:700;}
+.add-gear{width:100%;padding:11px;font-size:13px;font-weight:700;border-radius:12px;border:1.5px dashed var(--bdm);background:transparent;color:var(--mt);cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;margin-top:8px;margin-bottom:16px;}
+
+/* PROFILE */
+.prof-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.edit-btn{font-size:12px;font-weight:700;padding:7px 13px;border-radius:10px;border:1.5px solid var(--bdm);background:transparent;color:var(--tx);cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;}
+.edit-btn:hover{border-color:var(--y);}
+.avatar-big{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;cursor:pointer;overflow:hidden;}
+.pname{font-size:17px;font-weight:700;text-align:center;}
+.ploc{font-size:12px;color:var(--mt);text-align:center;margin-top:2px;margin-bottom:14px;}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+.stat-box{background:var(--surf);border-radius:12px;padding:10px 8px;text-align:center;}
+.stat-n{font-size:20px;font-weight:700;line-height:1;}
+.stat-l{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--mt);margin-top:3px;}
+
+/* AVATAR BUILDER */
+.av-preview{width:90px;height:90px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.av-sec-title{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--mt);margin-bottom:8px;margin-top:14px;}
+.av-options{display:flex;flex-wrap:wrap;gap:6px;}
+.av-opt{width:46px;height:46px;border-radius:10px;border:1.5px solid var(--bd);background:var(--surf);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s;overflow:hidden;}
+.av-opt.on{border-color:var(--y);background:#fffbe6;}
+.color-opt{width:32px;height:32px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;transition:border-color .15s;}
+.color-opt.on{border-color:var(--blk);}
+
+/* FORM */
+.f-group{margin-bottom:12px;}
+.f-label{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--mt);margin-bottom:4px;display:block;}
+.f-input{width:100%;padding:11px 13px;font-size:14px;font-weight:500;background:var(--surf);border:1.5px solid transparent;border-radius:12px;color:var(--tx);font-family:'Space Grotesk',system-ui,sans-serif;outline:none;transition:border-color .15s;resize:vertical;}
+.f-input:focus{border-color:var(--y);}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.gear-select{display:flex;flex-wrap:wrap;gap:6px;}
+.gear-opt{padding:7px 13px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid var(--bd);background:var(--card);color:var(--mt);cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;transition:all .15s;}
+.gear-opt.on{background:var(--y);color:var(--yd);border-color:var(--y);}
+.f-stars{display:flex;gap:6px;margin-top:4px;}
+.f-star{font-size:26px;color:var(--bdm);cursor:pointer;transition:color .1s;}
+.f-star.on{color:var(--y);}
+.cup-sliders{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+.cup-sl-box{background:var(--surf);border-radius:12px;padding:10px 12px;}
+.cup-sl-lbl{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mt);margin-bottom:6px;display:flex;justify-content:space-between;}
+.cup-sl-lbl span{color:var(--tx);}
+.cup-range{width:100%;accent-color:var(--y);}
+.flavor-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.ftag{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid var(--bd);background:var(--card);color:var(--mt);cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;transition:all .15s;}
+.ftag.on{background:var(--blk);color:var(--y);border-color:var(--blk);}
+.fav-toggle{display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--surf);border-radius:12px;margin-bottom:8px;cursor:pointer;}
+.fav-dot-el{width:20px;height:20px;border-radius:50%;border:2px solid var(--bdm);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.fav-dot-el.on{background:var(--y);border-color:var(--y);}
+
+/* ── LOG TABS ── */
+.tab-bar{display:flex;background:var(--surf);border-radius:12px;padding:3px;gap:3px;margin-bottom:12px;}
+.tab-btn{flex:1;padding:8px;font-size:12px;font-weight:700;border:none;border-radius:9px;background:transparent;color:var(--mt);cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;transition:all .15s;}
+.tab-btn.on{background:var(--card);color:var(--tx);box-shadow:0 1px 3px rgba(0,0,0,.1);}
+
+/* recipe cards */
+.recipe-card{border-radius:14px;border:1.5px solid var(--bd);background:var(--card);margin-bottom:8px;overflow:hidden;transition:border-color .2s;}
+.recipe-card:hover{border-color:var(--y);}
+.rc-head{padding:11px 13px 8px;display:flex;align-items:flex-start;gap:8px;}
+.rc-name{font-size:15px;font-weight:700;color:var(--tx);flex:1;}
+.rc-sub{font-size:11px;color:var(--mt);margin-top:2px;}
+.rc-chips{display:flex;gap:5px;flex-wrap:wrap;padding:0 13px 11px;}
+.rc-actions{display:flex;gap:6px;padding:0 13px 11px;}
+.rc-btn{padding:6px 13px;font-size:11px;font-weight:700;border-radius:8px;border:1.5px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;transition:all .15s;}
+.rc-btn:hover{border-color:var(--y);}
+.rc-btn.brew{background:var(--blk);color:var(--y);border-color:var(--blk);}
+.rc-btn.del{border-color:rgba(226,75,74,.3);color:#E24B4A;}
+
+/* history cards */
+.hist-card{border-radius:14px;border:1.5px solid var(--bd);background:var(--card);margin-bottom:8px;overflow:hidden;cursor:pointer;transition:border-color .2s;}
+.hist-card:hover{border-color:var(--y);}
+.hc-head{padding:10px 13px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.hc-bean{font-size:14px;font-weight:700;color:var(--tx);}
+.hc-sub{font-size:11px;color:var(--mt);margin-top:2px;}
+.hc-chips{display:flex;gap:5px;flex-wrap:wrap;padding:7px 13px 10px;}
+.hc-note{border-top:1px solid var(--bd);padding:8px 13px;font-size:12px;color:var(--mt);font-style:italic;line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="shell">
+<div class="notch"><div class="notch-pill"></div></div>
+
+<!-- LOG -->
+<div class="screen active" id="scr-log">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div style="font-size:20px;font-weight:700;">Logbook</div>
+    <button class="new-btn" id="log-add-btn" onclick="logAddNew()">+ New</button>
+  </div>
+  <!-- tab bar -->
+  <div class="tab-bar">
+    <button class="tab-btn on" id="tab-recipes" onclick="switchLogTab('recipes')">Recipes</button>
+    <button class="tab-btn" id="tab-history" onclick="switchLogTab('history')">History</button>
+  </div>
+  <!-- content areas -->
+  <div id="log-recipes-list"></div>
+  <div id="log-history-list" style="display:none;"></div>
+</div>
+
+<!-- entry detail overlay (history) -->
+<div class="overlay" id="entry-ov">
+  <div class="ov-hd"><button class="ov-back" onclick="closeOv('entry-ov')">&#8592;</button></div>
+  <div class="ov-body" id="ov-body"></div>
+</div>
+
+<!-- BREW -->
+<div class="screen" id="scr-brew">
+  <!-- header row -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="font-size:20px;font-weight:700;">Brew</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <!-- theme toggle -->
+      <button id="theme-btn" onclick="toggleTheme()" style="width:32px;height:32px;border-radius:50%;background:var(--surf);border:1.5px solid var(--bd);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;" aria-label="Toggle theme">🌙</button>
+      <!-- time mode toggle -->
+      <div onclick="toggleTimeMode()" style="display:flex;background:var(--surf);border-radius:20px;padding:2px;cursor:pointer;gap:2px;">
+        <span id="tt-minsec" style="font-size:10px;font-weight:700;padding:4px 9px;border-radius:16px;background:var(--blk);color:var(--y);">mm:ss</span>
+        <span id="tt-sec" style="font-size:10px;font-weight:700;padding:4px 9px;border-radius:16px;color:var(--mt);">sec</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- gear + recipe panel -->
+  <div style="background:var(--surf);border-radius:14px;padding:10px 12px;margin-bottom:10px;">
+
+    <!-- row 1: gear toggle buttons + info -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <div id="gear-toggle" style="display:flex;flex:1;background:var(--card);border-radius:10px;padding:3px;gap:3px;">
+        <button class="gear-tgl-btn" data-g="V60" onclick="switchBrewGear('V60')"><span class="gtb-ico"></span>V60</button>
+        <button class="gear-tgl-btn" data-g="Origami" onclick="switchBrewGear('Origami')"><span class="gtb-ico"></span>Origami</button>
+        <button class="gear-tgl-btn" data-g="Kalita" onclick="switchBrewGear('Kalita')"><span class="gtb-ico"></span>Kalita</button>
+      </div>
+      <button id="gear-info-btn" onclick="toggleGearInfoPanel()" style="width:30px;height:30px;border-radius:50%;background:var(--card);border:1.5px solid var(--bd);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--mt);flex-shrink:0;transition:all .15s;">&#9432;</button>
+    </div>
+
+    <!-- gear tip panel (collapsed by default) -->
+    <div id="gear-info-panel" style="display:none;background:var(--card);border-radius:10px;padding:10px 11px;margin-bottom:10px;"></div>
+
+    <!-- recipe inputs: single row of 4 compact boxes -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
+      <div class="brew-field-box" style="padding:7px 8px;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mt);margin-bottom:2px;">Coffee</div>
+        <div style="display:flex;align-items:baseline;gap:1px;">
+          <input class="brew-field" id="b-coffee" type="number" value="15" min="5" max="60" step="0.5" oninput="markBrewDirty()" style="font-size:18px;">
+          <span style="font-size:10px;font-weight:700;color:var(--mt);">g</span>
+        </div>
+      </div>
+      <div class="brew-field-box" style="padding:7px 8px;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mt);margin-bottom:2px;">Ratio</div>
+        <div style="display:flex;align-items:baseline;gap:1px;">
+          <span style="font-size:12px;font-weight:700;color:var(--mt);">1:</span>
+          <input class="brew-field" id="b-ratio" type="number" value="15" min="10" max="20" step="0.5" oninput="markBrewDirty()" style="font-size:18px;">
+        </div>
+      </div>
+      <div class="brew-field-box" style="padding:7px 8px;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mt);margin-bottom:2px;">Pour</div>
+        <div style="display:flex;align-items:baseline;gap:1px;">
+          <input class="brew-field" id="b-pour" type="number" value="45" min="10" max="150" step="5" oninput="markBrewDirty()" style="font-size:18px;">
+          <span style="font-size:10px;font-weight:700;color:var(--mt);">g</span>
+        </div>
+      </div>
+      <div class="brew-field-box" style="padding:7px 8px;">
+        <div style="font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mt);margin-bottom:2px;">Every</div>
+        <div style="display:flex;align-items:baseline;gap:1px;">
+          <input class="brew-field" id="b-interval" type="number" value="30" min="10" max="90" step="5" oninput="markBrewDirty()" style="font-size:18px;">
+          <span style="font-size:10px;font-weight:700;color:var(--mt);">s</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- custom pour toggle -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 9px;background:var(--card);border-radius:9px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--tx);">Custom pours</div>
+        <div style="font-size:9px;color:var(--mt);">Set each pour's weight separately</div>
+      </div>
+      <button type="button" id="custom-pour-switch" onclick="toggleCustomPourMode()" style="width:38px;height:22px;border-radius:12px;background:var(--bdm);border:none;cursor:pointer;position:relative;flex-shrink:0;transition:background .15s;">
+        <span id="custom-pour-knob" style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--card);transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.2);"></span>
+      </button>
+    </div>
+
+    <!-- custom pour editor (hidden unless toggle is on) -->
+    <div id="custom-pour-editor" style="display:none;margin-bottom:8px;">
+
+      <!-- timing mode sub-toggle -->
+      <div id="timing-mode-row" style="display:flex;background:var(--card);border-radius:8px;padding:2px;gap:2px;margin-bottom:8px;">
+        <button type="button" id="tm-timed" onclick="setTimingMode('timed')" class="tm-btn tm-on" style="flex:1;padding:6px;font-size:10px;font-weight:700;border:none;border-radius:6px;cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;transition:all .15s;">Timed</button>
+        <button type="button" id="tm-manual" onclick="setTimingMode('manual')" class="tm-btn" style="flex:1;padding:6px;font-size:10px;font-weight:700;border:none;border-radius:6px;cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;transition:all .15s;">Manual pace</button>
+      </div>
+
+      <div id="custom-pour-rows" style="display:flex;flex-direction:column;gap:5px;margin-bottom:6px;"></div>
+      <div style="display:flex;gap:6px;">
+        <button type="button" onclick="addCustomPourRow()" style="flex:1;padding:7px;font-size:11px;font-weight:700;border-radius:8px;border:1.5px dashed var(--bdm);background:transparent;color:var(--mt);cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;">+ Add pour</button>
+      </div>
+    </div>
+
+    <!-- summary strip -->
+    <div id="brew-recipe-box" style="background:var(--y);border-radius:8px;padding:7px 11px;font-size:12px;font-weight:700;color:var(--yd);margin-bottom:8px;"></div>
+
+    <!-- apply button: appears whenever recipe inputs have changed -->
+    <button type="button" id="apply-brew-btn" onclick="applyBrewChanges()" style="display:none;width:100%;padding:10px;font-size:13px;font-weight:700;background:var(--blk);color:var(--y);border:none;border-radius:10px;cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;">Apply changes</button>
+  </div>
+
+  <!-- ring : liquid glass coffee cup -->
+  <div class="ring-wrap">
+    <svg class="ring-svg" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="cc"><circle cx="80" cy="80" r="68"/></clipPath>
+
+        <!-- coffee liquid gradient: gets richer/darker as more pours complete -->
+        <radialGradient id="coffee-grad" cx="50%" cy="40%" r="75%">
+          <stop offset="0%" stop-color="#C99A6B" stop-opacity="0.55"/>
+          <stop offset="55%" stop-color="#8B5A2B" stop-opacity="0.7"/>
+          <stop offset="100%" stop-color="#5A3A1E" stop-opacity="0.85"/>
+        </radialGradient>
+
+        <!-- pouring stream highlight -->
+        <radialGradient id="pour-grad" cx="50%" cy="50%" r="60%">
+          <stop offset="0%" stop-color="#ffd100" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#ffd100" stop-opacity="0"/>
+        </radialGradient>
+
+        <!-- glass surface highlight -->
+        <linearGradient id="glass-shine" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+          <stop offset="35%" stop-color="#ffffff" stop-opacity="0.05"/>
+          <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+        </linearGradient>
+
+        <!-- soft blur for the glass body -->
+        <filter id="glass-blur" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="0.6"/>
+        </filter>
+      </defs>
+
+      <!-- frosted glass base -->
+      <circle cx="80" cy="80" r="68" fill="var(--card)" opacity="0.35" filter="url(#glass-blur)"/>
+      <circle cx="80" cy="80" r="68" fill="none" stroke="var(--bd)" stroke-width="1"/>
+
+      <!-- coffee liquid: rises smoothly with overall progress -->
+      <circle id="r-coffee" cx="80" cy="80" r="0" fill="url(#coffee-grad)" clip-path="url(#cc)" style="transition:r .8s cubic-bezier(.4,0,.2,1), fill .6s linear;"/>
+
+      <!-- active pour glow -->
+      <circle id="r-active" cx="80" cy="80" r="0" fill="url(#pour-grad)" clip-path="url(#cc)" style="transition:r .5s cubic-bezier(.4,0,.2,1);" opacity="0.9"/>
+
+      <!-- ripple rings while pouring -->
+      <g id="ripple-g" opacity="0">
+        <circle cx="80" cy="80" r="22" fill="none" stroke="#ffffff" stroke-width="1.5" opacity=".55"/>
+        <circle cx="80" cy="80" r="40" fill="none" stroke="#ffffff" stroke-width="1" opacity=".3"/>
+        <circle cx="80" cy="80" r="58" fill="none" stroke="#ffffff" stroke-width="0.75" opacity=".15"/>
+      </g>
+
+      <!-- glass shine overlay -->
+      <circle cx="80" cy="80" r="68" fill="url(#glass-shine)" clip-path="url(#cc)"/>
+
+      <!-- outer rim -->
+      <circle cx="80" cy="80" r="68" fill="none" stroke="var(--bdm)" stroke-width="1.5"/>
+    </svg>
+    <div class="center-ov">
+      <div class="c-pour-tag" id="c-pour-tag">Ready</div>
+      <div class="c-num" id="c-num">—</div>
+      <div class="c-unit">g</div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-bottom:10px;"><div class="cd-badge cd-idle" id="cd-badge">Press start</div></div>
+  <div class="steps-wrap" id="steps-wrap"></div>
+  <div class="ctrl-row">
+    <button class="c-btn go" id="main-btn" onclick="toggleBrew()">Start</button>
+    <button class="c-btn" onclick="rebuildAndReset()">Reset</button>
+  </div>
+  <button type="button" id="next-pour-btn" onclick="nextPour()" style="display:none;width:100%;padding:12px;font-size:14px;font-weight:700;background:#ffd100;color:#1a1a00;border:none;border-radius:10px;cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;margin-bottom:8px;">Next pour →</button>
+  <div class="bot-row">
+    <span>Elapsed: <span id="elapsed">0:00</span></span>
+    <span>Total: <span id="total-w">—</span>g</span>
+  </div>
+  <div class="finish-card" id="finish-card" style="display:none;">
+    <div style="font-size:32px;margin-bottom:6px;">☕</div>
+    <div style="font-size:20px;font-weight:700;color:var(--yd);">All done!</div>
+    <div style="font-size:12px;color:var(--yd);opacity:.7;margin-top:4px;" id="fin-sub"></div>
+    <button class="btn-blk" style="margin-top:12px;background:var(--blk);color:var(--y);" onclick="promptLog()">Log this brew &#8594;</button>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div class="screen" id="scr-profile">
+  <div class="prof-top">
+    <div style="font-size:20px;font-weight:700;">Profile</div>
+    <button class="edit-btn" onclick="showOv('avatar-ov')">Edit avatar</button>
+  </div>
+  <div class="avatar-big" id="prof-avatar" onclick="showOv('avatar-ov')"></div>
+  <div class="pname" id="prof-name">Tanakorn W.</div>
+  <div class="ploc">Specialty · Ayutthaya</div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-n" id="stat-brews">0</div><div class="stat-l">Brews</div></div>
+    <div class="stat-box"><div class="stat-n" id="stat-avg">—</div><div class="stat-l">Avg</div></div>
+    <div class="stat-box"><div class="stat-n" id="stat-favs">0</div><div class="stat-l">Favs</div></div>
+  </div>
+  <span class="sec-lbl">Favourite recipes</span>
+  <div id="fav-list"></div>
+</div>
+
+<!-- AVATAR OVERLAY -->
+<div class="overlay" id="avatar-ov" style="z-index:20;">
+  <div class="ov-hd"><button class="ov-back" onclick="closeOv('avatar-ov')">&#8592;</button></div>
+  <div class="ov-body">
+    <div style="font-size:18px;font-weight:700;margin-bottom:14px;">Custom avatar</div>
+    <div class="av-preview" id="av-preview"></div>
+    <div class="av-sec-title">Background</div>
+    <div class="av-options" id="av-bg-opts"></div>
+    <div class="av-sec-title">Face shape</div>
+    <div class="av-options" id="av-face-opts"></div>
+    <div class="av-sec-title">Expression</div>
+    <div class="av-options" id="av-expr-opts"></div>
+    <div class="av-sec-title">Accessory</div>
+    <div class="av-options" id="av-acc-opts"></div>
+    <div style="margin-top:16px;"></div>
+    <button class="btn-blk" onclick="saveAvatar()">Save avatar</button>
+    <div style="font-size:11px;color:var(--mt);text-align:center;margin-top:6px;">Full illustration by a real artist — coming soon ✨</div>
+  </div>
+</div>
+
+<!-- RECIPE FORM OVERLAY -->
+<div class="overlay" id="recipe-ov" style="z-index:20;">
+  <div class="ov-hd"><button class="ov-back" onclick="closeOv('recipe-ov')">&#8592;</button></div>
+  <div class="ov-body">
+    <div id="recipe-form-title" style="font-size:20px;font-weight:700;margin-bottom:16px;">New recipe</div>
+    <div class="f-group"><span class="f-label">Recipe name</span><input class="f-input" id="rf-name" type="text" placeholder="e.g. My go-to Ethiopia"></div>
+    <div class="f-group"><span class="f-label">Bean / Origin</span><input class="f-input" id="rf-bean" type="text" placeholder="e.g. Ethiopia Yirgacheffe"></div>
+    <div class="f-group"><span class="f-label">Roaster</span><input class="f-input" id="rf-roaster" type="text" placeholder="e.g. Roots, Pacamara..."></div>
+    <div class="f-group">
+      <span class="f-label">Roast level</span>
+      <div class="gear-select" id="rf-roast-sel">
+        <div class="gear-opt on" data-r="Light">Light</div>
+        <div class="gear-opt" data-r="Medium">Medium</div>
+        <div class="gear-opt" data-r="Dark">Dark</div>
+      </div>
+    </div>
+    <div class="f-group">
+      <span class="f-label">Gear</span>
+      <div class="gear-select" id="rf-gear-sel">
+        <div class="gear-opt on" data-g="V60">V60</div>
+        <div class="gear-opt" data-g="Origami">Origami</div>
+        <div class="gear-opt" data-g="Kalita">Kalita</div>
+      </div>
+    </div>
+    <div class="f-row">
+      <div class="f-group"><span class="f-label">Coffee (g)</span><input class="f-input" id="rf-coffee" type="number" value="15" min="5" max="60"></div>
+      <div class="f-group"><span class="f-label">Ratio 1 :</span><input class="f-input" id="rf-ratio" type="number" value="15" min="10" max="20" step="0.5"></div>
+    </div>
+    <div class="f-row">
+      <div class="f-group"><span class="f-label">Per pour (g)</span><input class="f-input" id="rf-pour" type="number" value="45" min="10" max="150" step="5"></div>
+      <div class="f-group"><span class="f-label">Interval (s)</span><input class="f-input" id="rf-interval" type="number" value="30" min="10" max="90" step="5"></div>
+    </div>
+    <div class="f-row">
+      <div class="f-group"><span class="f-label">Temp (°C)</span><input class="f-input" id="rf-temp" type="number" value="93" min="80" max="100"></div>
+      <div class="f-group"><span class="f-label">Grind clicks</span><input class="f-input" id="rf-grind" type="number" value="28" min="10" max="50"></div>
+    </div>
+    <div class="f-group"><span class="f-label">Notes</span><textarea class="f-input" id="rf-note" rows="2" placeholder="Tips, inspiration, etc."></textarea></div>
+    <button type="button" class="btn-blk" id="recipe-submit-btn" onclick="submitRecipe()">Save recipe</button>
+    <button type="button" class="btn-out" onclick="closeOv('recipe-ov')">Cancel</button>
+  </div>
+</div>
+
+<!-- HISTORY FORM OVERLAY -->
+<div class="overlay" id="hist-ov" style="z-index:20;">
+  <div class="ov-hd"><button class="ov-back" onclick="closeOv('hist-ov')">&#8592;</button></div>
+  <div class="ov-body">
+    <div style="font-size:20px;font-weight:700;margin-bottom:16px;">Log session</div>
+    <!-- pick recipe or fill manually -->
+    <div class="f-group">
+      <span class="f-label">Use a saved recipe? (optional)</span>
+      <div id="hf-recipe-pick" style="display:flex;flex-direction:column;gap:5px;margin-bottom:4px;"></div>
+    </div>
+    <div id="hf-brew-fields">
+      <div class="f-group"><span class="f-label">Bean / Origin</span><input class="f-input" id="hf-bean" type="text" placeholder="e.g. Ethiopia Yirgacheffe"></div>
+      <div class="f-group"><span class="f-label">Roaster</span><input class="f-input" id="hf-roaster" type="text" placeholder=""></div>
+      <div class="f-group">
+        <span class="f-label">Gear</span>
+        <div class="gear-select" id="hf-gear-sel">
+          <div class="gear-opt on" data-g="V60">V60</div>
+          <div class="gear-opt" data-g="Origami">Origami</div>
+          <div class="gear-opt" data-g="Kalita">Kalita</div>
+        </div>
+      </div>
+      <div class="f-row">
+        <div class="f-group"><span class="f-label">Coffee (g)</span><input class="f-input" id="hf-coffee" type="number" value="15"></div>
+        <div class="f-group"><span class="f-label">Ratio 1 :</span><input class="f-input" id="hf-ratio" type="number" value="15" step="0.5"></div>
+      </div>
+      <div class="f-row">
+        <div class="f-group"><span class="f-label">Temp (°C)</span><input class="f-input" id="hf-temp" type="number" value="93"></div>
+        <div class="f-group"><span class="f-label">Grind clicks</span><input class="f-input" id="hf-grind" type="number" value="28"></div>
+      </div>
+      <div class="f-group"><span class="f-label">Brew time</span><input class="f-input" id="hf-time" type="text" placeholder="3:20"></div>
+    </div>
+    <div class="f-group">
+      <span class="f-label">Rating</span>
+      <div class="f-stars" id="hf-stars">
+        <span class="f-star on" data-r="1">&#9733;</span>
+        <span class="f-star on" data-r="2">&#9733;</span>
+        <span class="f-star on" data-r="3">&#9733;</span>
+        <span class="f-star on" data-r="4">&#9733;</span>
+        <span class="f-star" data-r="5">&#9733;</span>
+      </div>
+    </div>
+    <div class="f-group">
+      <span class="f-label">Cupping profile</span>
+      <div class="cup-sliders">
+        <div class="cup-sl-box"><div class="cup-sl-lbl">Acidity <span id="hv-acid">3</span>/5</div><input class="cup-range" id="hs-acid" type="range" min="1" max="5" value="3" step="1"></div>
+        <div class="cup-sl-box"><div class="cup-sl-lbl">Sweetness <span id="hv-sweet">3</span>/5</div><input class="cup-range" id="hs-sweet" type="range" min="1" max="5" value="3" step="1"></div>
+        <div class="cup-sl-box"><div class="cup-sl-lbl">Body <span id="hv-body">3</span>/5</div><input class="cup-range" id="hs-body" type="range" min="1" max="5" value="3" step="1"></div>
+        <div class="cup-sl-box"><div class="cup-sl-lbl">Finish <span id="hv-finish">3</span>/5</div><input class="cup-range" id="hs-finish" type="range" min="1" max="5" value="3" step="1"></div>
+      </div>
+    </div>
+    <div class="f-group">
+      <span class="f-label">Flavor notes</span>
+      <div class="flavor-tags" id="hf-flavor-tags"></div>
+    </div>
+    <div class="f-group"><span class="f-label">Notes</span><textarea class="f-input" id="hf-note" rows="2" placeholder="What to adjust, impressions..."></textarea></div>
+    <button type="button" class="btn-blk" onclick="submitHistory()">Save session</button>
+    <button type="button" class="btn-out" onclick="closeOv('hist-ov')">Cancel</button>
+  </div>
+</div>
+
+<!-- FORM OVERLAY -->
+<div class="overlay" id="form-ov" style="z-index:20;">
+  <div class="ov-hd"><button class="ov-back" onclick="cancelForm()">&#8592;</button></div>
+  <div class="ov-body">
+    <div id="form-title" style="font-size:20px;font-weight:700;margin-bottom:16px;">New brew entry</div>
+    <div class="f-group"><span class="f-label">Bean / Origin</span><input class="f-input" id="f-bean" type="text" placeholder="e.g. Ethiopia Yirgacheffe"></div>
+    <div class="f-group"><span class="f-label">Roaster</span><input class="f-input" id="f-roaster" type="text" placeholder="e.g. Roots, Pacamara..."></div>
+    <div class="f-group">
+      <span class="f-label">Roast level</span>
+      <div class="gear-select" id="f-roast-sel">
+        <div class="gear-opt on" data-r="Light">Light</div>
+        <div class="gear-opt" data-r="Medium">Medium</div>
+        <div class="gear-opt" data-r="Dark">Dark</div>
+      </div>
+    </div>
+    <div class="f-group">
+      <span class="f-label">Gear used</span>
+      <div class="gear-select" id="f-gear-sel">
+        <div class="gear-opt on" data-g="V60">V60</div>
+        <div class="gear-opt" data-g="Origami">Origami</div>
+        <div class="gear-opt" data-g="Kalita">Kalita</div>
+      </div>
+    </div>
+    <div class="f-row">
+      <div class="f-group"><span class="f-label">Coffee (g)</span><input class="f-input" id="f-coffee" type="number" value="15" min="5" max="50"></div>
+      <div class="f-group"><span class="f-label">Ratio 1 :</span><input class="f-input" id="f-ratio" type="number" value="15" min="10" max="20"></div>
+    </div>
+    <div class="f-row">
+      <div class="f-group"><span class="f-label">Temp (°C)</span><input class="f-input" id="f-temp" type="number" value="93"></div>
+      <div class="f-group"><span class="f-label">Grind clicks</span><input class="f-input" id="f-grind" type="number" value="28"></div>
+    </div>
+    <div class="f-group"><span class="f-label">Total time</span><input class="f-input" id="f-time" type="text" placeholder="3:20"></div>
+    <div class="f-group">
+      <span class="f-label">Rating</span>
+      <div class="f-stars" id="f-stars">
+        <span class="f-star on" data-r="1">&#9733;</span>
+        <span class="f-star on" data-r="2">&#9733;</span>
+        <span class="f-star on" data-r="3">&#9733;</span>
+        <span class="f-star on" data-r="4">&#9733;</span>
+        <span class="f-star" data-r="5">&#9733;</span>
+      </div>
+    </div>
+    <div class="f-group">
+      <span class="f-label">Cupping profile</span>
+      <div class="cup-sliders">
+        <div class="cup-sl-box"><div class="cup-sl-lbl">Acidity <span id="sv-acid">3</span>/5</div><input class="cup-range" id="sl-acid" type="range" min="1" max="5" value="3" step="1"></div>
+        <div class="cup-sl-box"><div class="cup-sl-lbl">Sweetness <span id="sv-sweet">3</span>/5</div><input class="cup-range" id="sl-sweet" type="range" min="1" max="5" value="3" step="1"></div>
+        <div class="cup-sl-box"><div class="cup-sl-lbl">Body <span id="sv-body">3</span>/5</div><input class="cup-range" id="sl-body" type="range" min="1" max="5" value="3" step="1"></div>
+        <div class="cup-sl-box"><div class="cup-sl-lbl">Finish <span id="sv-finish">3</span>/5</div><input class="cup-range" id="sl-finish" type="range" min="1" max="5" value="3" step="1"></div>
+      </div>
+    </div>
+    <div class="f-group">
+      <span class="f-label">Flavor notes</span>
+      <div class="flavor-tags" id="f-flavor-tags"></div>
+    </div>
+    <div class="f-group"><span class="f-label">Notes</span><textarea class="f-input" id="f-note" rows="3" placeholder="What to adjust, impressions..."></textarea></div>
+    <div class="f-group">
+      <span class="f-label">Favourite recipe?</span>
+      <div class="fav-toggle" onclick="toggleFavForm()">
+        <div class="fav-dot-el" id="fav-dot"></div>
+        <div>
+          <div style="font-size:13px;font-weight:700;">Mark as favourite extraction</div>
+          <div style="font-size:11px;color:var(--mt);">Saves bean + roaster + gear + recipe</div>
+        </div>
+      </div>
+      <div id="fav-name-wrap" style="display:none;"><input class="f-input" id="f-fav-name" type="text" placeholder="e.g. My go-to Ethiopia Light"></div>
+    </div>
+    <button type="button" class="btn-blk" id="form-submit-btn" onclick="submitEntry()">Save entry</button>
+    <button type="button" class="btn-out" onclick="cancelForm()">Cancel</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav" style="display:flex;align-items:center;justify-content:center;gap:28px;padding:10px 16px 16px;">
+  <button class="nb on" id="nav-log" onclick="goScreen('scr-log')">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14" rx="2"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="10" y2="13"/></svg>
+    Log<div class="np"></div>
+  </button>
+  <button id="nav-brew" onclick="goScreen('scr-brew')" style="display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--blk);color:var(--y);border:none;border-radius:20px;padding:10px 24px;cursor:pointer;font-family:'Space Grotesk',system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.18);">
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><polygon points="7,4 16,10 7,16" fill="var(--y)"/></svg>
+    Brew
+  </button>
+  <button class="nb" id="nav-profile" onclick="goScreen('scr-profile')">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="7" r="3"/><path d="M3 17c0-3.866 3.134-7 7-7s7 3.134 7 7"/></svg>
+    Profile<div class="np"></div>
+  </button>
+</div>
+</div>
+
+<script>
+/* AVATAR */
+const AV_BG=['#ffd100','#1D9E75','#378ADD','#E24B4A','#a855f7','#f97316','#1a1a1a','#999'];
+const AV_FACES=[
+  {id:'round',svg:'<circle cx="22" cy="22" r="13" fill="white" opacity=".9"/>'},
+  {id:'squircle',svg:'<rect x="9" y="9" width="26" height="26" rx="8" fill="white" opacity=".9"/>'},
+  {id:'leaf',svg:'<ellipse cx="22" cy="22" rx="10" ry="14" fill="white" opacity=".9"/>'},
+];
+const AV_EXPR=[
+  {id:'smile',svg:'<circle cx="17" cy="21" r="1.8" fill="{c}"/><circle cx="27" cy="21" r="1.8" fill="{c}"/><path d="M16 26 Q22 30 28 26" stroke="{c}" stroke-width="1.8" fill="none" stroke-linecap="round"/>'},
+  {id:'cool',svg:'<rect x="14" y="19" width="6" height="3" rx="1.5" fill="{c}"/><rect x="24" y="19" width="6" height="3" rx="1.5" fill="{c}"/><line x1="17" y1="27" x2="27" y2="27" stroke="{c}" stroke-width="1.8" stroke-linecap="round"/>'},
+  {id:'focus',svg:'<circle cx="17" cy="22" r="2.2" fill="{c}"/><circle cx="27" cy="22" r="2.2" fill="{c}"/><line x1="14" y1="17" x2="20" y2="19" stroke="{c}" stroke-width="1.5" stroke-linecap="round"/><line x1="30" y1="17" x2="24" y2="19" stroke="{c}" stroke-width="1.5" stroke-linecap="round"/><line x1="16" y1="28" x2="28" y2="28" stroke="{c}" stroke-width="1.8" stroke-linecap="round"/>'},
+];
+const AV_ACC=[
+  {id:'none',svg:''},
+  {id:'cap',svg:'<path d="M10 17 Q22 8 34 17 L32 19 Q22 11 12 19Z" fill="{c}"/><rect x="9" y="16" width="26" height="3.5" rx="1.5" fill="{c}"/>'},
+  {id:'glasses',svg:'<circle cx="17" cy="21" r="4.5" fill="none" stroke="{c}" stroke-width="1.5"/><circle cx="27" cy="21" r="4.5" fill="none" stroke="{c}" stroke-width="1.5"/><line x1="21.5" y1="21" x2="22.5" y2="21" stroke="{c}" stroke-width="1.5"/><line x1="12.5" y1="21" x2="10" y2="20" stroke="{c}" stroke-width="1.5"/><line x1="31.5" y1="21" x2="34" y2="20" stroke="{c}" stroke-width="1.5"/>'},
+  {id:'beanie',svg:'<rect x="11" y="10" width="22" height="11" rx="4" fill="{c}"/><rect x="9" y="19" width="26" height="4" rx="2" fill="{c}"/><circle cx="22" cy="9" r="3" fill="{c}"/>'},
+];
+let av={bg:'#ffd100',face:'round',expr:'smile',acc:'none'};
+
+function avColor(bg){
+  if(bg==='#ffd100') return '#1a1a00';
+  if(bg==='#1a1a1a') return '#ffd100';
+  return '#ffffff';
+}
+function buildAvatarSVG(cfg,size){
+  size=size||44;
+  const c=avColor(cfg.bg);
+  const face=AV_FACES.find(f=>f.id===cfg.face)||AV_FACES[0];
+  const expr=AV_EXPR.find(e=>e.id===cfg.expr)||AV_EXPR[0];
+  const acc=AV_ACC.find(a=>a.id===cfg.acc)||AV_ACC[0];
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 44 44" fill="none">'+face.svg+expr.svg.replaceAll('{c}',c)+acc.svg.replaceAll('{c}',c)+'</svg>';
+}
+function renderAvPreview(){
+  var el=document.getElementById('av-preview');
+  el.style.background=av.bg;
+  el.innerHTML=buildAvatarSVG(av,60);
+}
+function renderAvMain(){
+  var el=document.getElementById('prof-avatar');
+  el.style.background=av.bg;
+  el.innerHTML=buildAvatarSVG(av,56);
+}
+function initAvBuilder(){
+  var bgEl=document.getElementById('av-bg-opts');
+  bgEl.innerHTML=AV_BG.map(function(c){return '<div class="color-opt '+(c===av.bg?'on':'')+'" style="background:'+c+';" onclick="setAv(\'bg\',\''+c+'\')"></div>';}).join('');
+  var faceEl=document.getElementById('av-face-opts');
+  faceEl.innerHTML=AV_FACES.map(function(f){
+    return '<div class="av-opt '+(f.id===av.face?'on':'')+'" onclick="setAv(\'face\',\''+f.id+'\')">'+'<svg width="32" height="32" viewBox="0 0 44 44" fill="none">'+f.svg+'</svg>'+'</div>';
+  }).join('');
+  var exprEl=document.getElementById('av-expr-opts');
+  exprEl.innerHTML=AV_EXPR.map(function(e){
+    return '<div class="av-opt '+(e.id===av.expr?'on':'')+'" onclick="setAv(\'expr\',\''+e.id+'\')">'+'<svg width="32" height="32" viewBox="0 0 44 44" fill="none">'+e.svg.replaceAll('{c}','#555')+'</svg>'+'</div>';
+  }).join('');
+  var accEl=document.getElementById('av-acc-opts');
+  accEl.innerHTML=AV_ACC.map(function(a){
+    var svg=a.id==='none'?'<svg width="32" height="32" viewBox="0 0 44 44"><line x1="14" y1="14" x2="30" y2="30" stroke="#ccc" stroke-width="2"/><line x1="30" y1="14" x2="14" y2="30" stroke="#ccc" stroke-width="2"/></svg>':'<svg width="32" height="32" viewBox="0 0 44 44" fill="none">'+a.svg.replaceAll('{c}','#555')+'</svg>';
+    return '<div class="av-opt '+(a.id===av.acc?'on':'')+'" onclick="setAv(\'acc\',\''+a.id+'\')">'+svg+'</div>';
+  }).join('');
+  renderAvPreview();
+}
+function setAv(key,val){
+  av[key]=val;
+  renderAvPreview();
+  if(key==='bg'){
+    document.querySelectorAll('#av-bg-opts .color-opt').forEach(function(o){o.classList.toggle('on',o.style.background===val);});
+  } else {
+    var maps={face:'av-face-opts',expr:'av-expr-opts',acc:'av-acc-opts'};
+    var arr=key==='face'?AV_FACES:key==='expr'?AV_EXPR:AV_ACC;
+    document.querySelectorAll('#'+maps[key]+' .av-opt').forEach(function(o,i){o.classList.toggle('on',arr[i].id===val);});
+  }
+}
+function saveAvatar(){renderAvMain();closeOv('avatar-ov');}
+
+/* GEARS */
+var GEARS=[
+  {id:'V60',name:'Hario V60',sub:'Ceramic · size 02',badge:'Main',badgeCls:'py',tips:[
+    {dot:'#EF9F27',t:'Spiral pour is everything',b:'Steady spiral center-out. Keep water 1–2cm above the bed. Rushing = uneven extraction.'},
+    {dot:'#378ADD',t:'Grind fine-ish',b:'Light roast: Comandante 26–28 clicks. Medium: 28–31. Over 4 min drawdown → go coarser.'},
+    {dot:'#1D9E75',t:'45s bloom',b:'2–3× coffee weight. Saturate all grounds. A bad bloom can\'t be rescued by ratio.'},
+  ]},
+  {id:'Origami',name:'Origami',sub:'Plastic · size S',badge:'New',badgeCls:'pb',tips:[
+    {dot:'#EF9F27',t:'Coarser than V60',b:'Origami flows faster — +2–3 clicks vs your V60 baseline. Your 28 → try 30–31.'},
+    {dot:'#378ADD',t:'Paper vs metal filter',b:'Paper = more body, use 1:15. Metal = brighter, thinner — try 1:16 to balance.'},
+    {dot:'#1D9E75',t:'Preheat more',b:'Origami ceramic loses heat fast. Rinse and preheat 30s longer than V60.'},
+  ]},
+  {id:'Kalita',name:'Kalita Wave',sub:'Steel · 185',badge:'',badgeCls:'',tips:[
+    {dot:'#EF9F27',t:'Forgiving flat bed',b:'Flat bed levels out uneven pours. The most consistent dripper for daily use.'},
+    {dot:'#378ADD',t:'Slightly coarser',b:'Wave filters slow flow. +1–2 clicks vs V60. Target brew time 3:00–3:30.'},
+    {dot:'#1D9E75',t:'Center pour works',b:'No spiral needed — steady center pour covering ~60% of bed is reliable.'},
+  ]},
+];
+var GEAR_SVG={
+  /* V60: classic cone paper filter - tall narrow cone with folded seam */
+  V60:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 4 L18 4 L12.5 19 L9.5 19 Z" stroke-linejoin="round"/><line x1="11" y1="4" x2="11" y2="19" stroke-dasharray="1.5 1.5" stroke-width="1"/></svg>',
+  /* Origami: fan-folded cone - many pleats radiating from the tip */
+  Origami:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 4 L18 4 L12.5 19 L9.5 19 Z" stroke-linejoin="round"/><line x1="11" y1="4" x2="11" y2="19" stroke-width="1"/><line x1="7.5" y1="4" x2="10" y2="19" stroke-width="0.9"/><line x1="14.5" y1="4" x2="12" y2="19" stroke-width="0.9"/><line x1="5.5" y1="4" x2="9.3" y2="19" stroke-width="0.8" opacity="0.6"/><line x1="16.5" y1="4" x2="12.7" y2="19" stroke-width="0.8" opacity="0.6"/></svg>',
+  /* Kalita Wave: flat-bottom trapezoid with wavy filter rim */
+  Kalita:'<svg width="20" height="20" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M4 4 L18 4 L14 16 L8 16 Z" stroke-linejoin="round"/><line x1="8" y1="16" x2="14" y2="16" stroke-linecap="round"/><path d="M4 4 Q5.5 5.5 7 4 Q8.5 5.5 10 4 Q11.5 5.5 13 4 Q14.5 5.5 16 4 Q17.5 5.5 18 4" stroke-width="1"/></svg>',
+};
+
+var selectedGear='V60';
+
+function renderGears(){
+  var el=document.getElementById('gear-list');
+  el.innerHTML=GEARS.map(function(g){
+    return '<div class="gear-block">'
+      +'<div class="gear-item '+(g.id===selectedGear?'sel':'')+'" id="gi-'+g.id+'" onclick="selectGear(\''+g.id+'\')">'
+      +'<div class="gear-ico">'+(GEAR_SVG[g.id]||'')+'</div>'
+      +'<div><div class="gname">'+g.name+'</div><div class="gsub">'+g.sub+'</div></div>'
+      +(g.badge?'<span class="pill '+g.badgeCls+'" style="margin-left:auto;margin-right:6px;">'+g.badge+'</span>':'<div style="flex:1"></div>')
+      +'<button class="info-btn" onclick="toggleTips(event,\''+g.id+'\')" aria-label="Tips">&#9432;</button>'
+      +'</div>'
+      +'<div class="tip-panel" id="tp-'+g.id+'">'
+      +g.tips.map(function(t){return '<div class="tip-row"><div class="tip-dot" style="background:'+t.dot+'"></div><div class="tip-text"><b>'+t.t+'</b> — '+t.b+'</div></div>';}).join('')
+      +'</div>'
+      +'</div>';
+  }).join('') + '<button class="add-gear">+ Add gear</button>';
+}
+
+function toggleTips(e,id){e.stopPropagation();document.getElementById('tp-'+id).classList.toggle('show');}
+function selectGear(id){
+  selectedGear=id;
+  document.querySelectorAll('.gear-item').forEach(function(g){g.classList.toggle('sel',g.id==='gi-'+id);});
+}
+
+/* FLAVORS */
+var FLAVORS=['Floral','Jasmine','Rose','Citrus','Lemon','Orange','Berry','Blueberry','Cherry','Stone fruit','Apple','Chocolate','Dark choc','Caramel','Toffee','Brown sugar','Honey','Vanilla','Nutty','Almond','Cedar','Tobacco','Earthy','Fermented'];
+var selFlavors=new Set();
+function renderFlavorTags(){
+  var el=document.getElementById('f-flavor-tags');
+  el.innerHTML=FLAVORS.map(function(f){return '<div class="ftag '+(selFlavors.has(f)?'on':'')+'" onclick="toggleFlavor(\''+f+'\')">'+f+'</div>';}).join('');
+}
+function toggleFlavor(f){selFlavors.has(f)?selFlavors.delete(f):selFlavors.add(f);renderFlavorTags();}
+
+/* ENTRIES */
+var entries=[
+  {id:1,bean:'Ethiopia Yirgacheffe',roaster:'Roots',roast:'Light',gear:'V60',coffee:15,ratio:15,temp:93,grind:28,time:'3:20',rating:4,cupping:{acid:4,sweet:3,body:2,finish:4},flavors:['Floral','Citrus','Jasmine'],note:'Bright and clean. Try 30 clicks next time.',fav:true,favName:'My go-to Ethiopia'},
+  {id:2,bean:'Colombia Huila',roaster:'Pacamara',roast:'Medium',gear:'V60',coffee:17,ratio:15,temp:92,grind:27,time:'3:10',rating:5,cupping:{acid:3,sweet:5,body:4,finish:4},flavors:['Caramel','Apple','Brown sugar'],note:'Perfect cup. Repeat exactly.',fav:true,favName:'Colombia Sweet Spot'},
+  {id:3,bean:'Kenya AB Kirinyaga',roaster:'Graph',roast:'Light',gear:'Kalita',coffee:15,ratio:16,temp:94,grind:30,time:'3:35',rating:4,cupping:{acid:5,sweet:3,body:3,finish:3},flavors:['Berry','Citrus','Cherry'],note:'Juicy blackcurrant. Go finer.',fav:false,favName:''},
+];
+var nextId=4,formRating=4,isFavForm=false,editingId=null;
+
+function renderEntries(){
+  var el=document.getElementById('entries-list');
+  if(!entries.length){el.innerHTML='<div style="text-align:center;padding:40px 0;color:var(--mt);font-size:13px;">No entries yet.<br>Tap + New entry to start.</div>';return;}
+  el.innerHTML=[...entries].reverse().map(function(e){
+    var starColor = e.fav ? '#c8a000' : 'var(--bdm)';
+    var starFill = e.fav ? '#c8a000' : 'none';
+    return '<div class="entry-card" onclick="openEntry('+e.id+')">'
+      +'<div class="e-top"><div class="e-row">'
+      +'<div><div class="e-bean">'+e.bean+'</div><div class="e-sub">'+(e.roaster?e.roaster+' · ':'')+e.gear+' · '+e.coffee+'g · 1:'+e.ratio+'</div></div>'
+      +'<div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">'
+        +'<div style="display:flex;align-items:center;gap:6px;">'
+          +'<div class="stars">'+'★'.repeat(e.rating)+'☆'.repeat(5-e.rating)+'</div>'
+          +'<button type="button" class="fav-toggle-star" onclick="toggleEntryFav(event,'+e.id+')" title="'+(e.fav?'Remove from favourites':'Mark as favourite')+'" style="background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;">'
+            +'<svg width="18" height="18" viewBox="0 0 20 20" fill="'+starFill+'" stroke="'+starColor+'" stroke-width="1.5" stroke-linejoin="round"><path d="M10 1.5l2.6 5.27 5.82.85-4.21 4.1 1 5.8L10 14.77l-5.2 2.75 1-5.8-4.2-4.1 5.8-.85z"/></svg>'
+          +'</button>'
+        +'</div>'
+        +(e.fav?'<div class="fav-badge">&#9733; '+e.favName+'</div>':'')
+      +'</div>'
+      +'</div></div>'
+      +'<div class="e-chips"><span class="pill pg">'+e.temp+'°C</span><span class="pill pg">'+e.grind+' clicks</span><span class="pill pg">'+e.time+'</span>'+e.flavors.slice(0,2).map(function(f){return '<span class="pill pb">'+f+'</span>';}).join('')+'</div>'
+      +(e.note?'<div class="e-note">"'+e.note+'"</div>':'')
+      +'</div>';
+  }).join('');
+}
+
+function toggleEntryFav(evt,id){
+  evt.stopPropagation(); // don't open the entry detail
+  var e=entries.find(function(x){return x.id===id;});
+  if(!e) return;
+  if(e.fav){
+    e.fav=false;
+    e.favName='';
+  } else {
+    var name=prompt('Name this favourite recipe:', e.bean);
+    if(name===null) return; // user cancelled
+    e.fav=true;
+    e.favName=name.trim()||e.bean;
+  }
+  saveEntries();
+  renderEntries();
+  updateStats();
+}
+
+function openEntry(id){
+  var e=entries.find(function(x){return x.id===id;});
+  if(!e) return;
+  var CC={acid:'#378ADD',sweet:'#1D9E75',body:'#EF9F27',finish:'#a855f7'};
+  var CL={acid:'Acidity',sweet:'Sweetness',body:'Body',finish:'Finish'};
+  document.getElementById('ov-body').innerHTML=
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span class="pill pg">'+e.gear+'</span>'+(e.roast?'<span class="pill pa">'+e.roast+'</span>':'')+'</div>'
+    +'<div class="ov-bean">'+e.bean+'</div>'
+    +(e.roaster?'<div style="font-size:13px;color:var(--mt);margin-bottom:8px;">'+e.roaster+'</div>':'')
+    +'<div class="ov-meta"><span class="stars" style="font-size:14px;">'+'★'.repeat(e.rating)+'☆'.repeat(5-e.rating)+'</span>'+(e.fav?'<span class="fav-badge">&#9733; '+e.favName+'</span>':'')+'</div>'
+    +'<div class="stat4">'
+    +'<div class="s4"><div class="s4-v">'+e.coffee+'g</div><div class="s4-l">Coffee</div></div>'
+    +'<div class="s4"><div class="s4-v">1 : '+e.ratio+'</div><div class="s4-l">Ratio</div></div>'
+    +'<div class="s4"><div class="s4-v">'+e.temp+'°C</div><div class="s4-l">Temp</div></div>'
+    +'<div class="s4"><div class="s4-v">'+e.time+'</div><div class="s4-l">Time</div></div>'
+    +'</div>'
+    +'<span class="sec-lbl">Cupping profile</span>'
+    +'<div class="cup-grid">'+['acid','sweet','body','finish'].map(function(k){return '<div class="cup-box"><div class="cup-lbl">'+CL[k]+'</div><div class="cup-bar-bg"><div class="cup-bar-fill" style="width:'+(e.cupping[k]/5*100)+'%;background:'+CC[k]+';"></div></div><div class="cup-val">'+e.cupping[k]+'/5</div></div>';}).join('')+'</div>'
+    +(e.flavors.length?'<span class="sec-lbl">Flavor notes</span><div class="flavor-wrap">'+e.flavors.map(function(f){return '<span class="pill pb">'+f+'</span>';}).join('')+'</div>':'')
+    +(e.note?'<div style="background:var(--surf);border-radius:12px;padding:12px;font-size:13px;color:var(--mt);line-height:1.6;margin-bottom:12px;">"'+e.note+'"</div>':'')
+    +'<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mt);margin-bottom:6px;">Grind</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surf);border-radius:12px;margin-bottom:14px;"><span style="font-size:13px;font-weight:700;flex:1;">Comandante · '+e.grind+' clicks</span><span style="font-size:11px;color:var(--mt);">'+(e.grind<=26?'Fine':e.grind<=30?'Medium-fine':'Medium')+'</span></div>'
+    +'<button type="button" class="btn-blk" onclick="loadBrewFromEntry('+e.id+')">Brew this recipe &#8594;</button>'
+    +'<button type="button" class="btn-out" onclick="editEntryFromDetail('+e.id+')">Edit entry</button>';
+  showOv('entry-ov');
+}
+
+function editEntryFromDetail(id){
+  closeOv('entry-ov');
+  editEntry(id);
+}
+
+function loadBrewFromEntry(id){
+  var e=entries.find(function(x){return x.id===id;});
+  if(!e) return;
+  selectedGear=e.gear;
+  closeOv('entry-ov');
+  goScreen('scr-brew');
+}
+
+/* FORM */
+function showForm(entryToEdit){
+  editingId = entryToEdit ? entryToEdit.id : null;
+  selFlavors = entryToEdit ? new Set(entryToEdit.flavors) : new Set();
+  formRating = entryToEdit ? entryToEdit.rating : 4;
+  isFavForm = entryToEdit ? !!entryToEdit.fav : false;
+
+  document.getElementById('fav-dot').classList.toggle('on', isFavForm);
+  document.getElementById('fav-name-wrap').style.display = isFavForm ? 'block' : 'none';
+
+  document.getElementById('f-bean').value = entryToEdit ? entryToEdit.bean : '';
+  document.getElementById('f-roaster').value = entryToEdit ? (entryToEdit.roaster || '') : '';
+  document.getElementById('f-time').value = entryToEdit ? entryToEdit.time : '';
+  document.getElementById('f-note').value = entryToEdit ? (entryToEdit.note || '') : '';
+  document.getElementById('f-fav-name').value = entryToEdit ? (entryToEdit.favName || '') : '';
+  document.getElementById('f-coffee').value = entryToEdit ? entryToEdit.coffee : 15;
+  document.getElementById('f-ratio').value = entryToEdit ? entryToEdit.ratio : 15;
+  document.getElementById('f-temp').value = entryToEdit ? entryToEdit.temp : 93;
+  document.getElementById('f-grind').value = entryToEdit ? entryToEdit.grind : 28;
+
+  var cup = entryToEdit ? entryToEdit.cupping : {acid:3,sweet:3,body:3,finish:3};
+  ['sl-acid','sl-sweet','sl-body','sl-finish'].forEach(function(id,i){
+    var key=['acid','sweet','body','finish'][i];
+    document.getElementById(id).value=cup[key];
+  });
+  ['sv-acid','sv-sweet','sv-body','sv-finish'].forEach(function(id,i){
+    var key=['acid','sweet','body','finish'][i];
+    document.getElementById(id).textContent=String(cup[key]);
+  });
+
+  // roast level toggle
+  var roastVal = entryToEdit ? (entryToEdit.roast || 'Light') : 'Light';
+  document.querySelectorAll('#f-roast-sel .gear-opt').forEach(function(o){
+    o.classList.toggle('on', o.dataset.r === roastVal);
+  });
+
+  // gear used toggle
+  var gearVal = entryToEdit ? (entryToEdit.gear || 'V60') : 'V60';
+  document.querySelectorAll('#f-gear-sel .gear-opt').forEach(function(o){
+    o.classList.toggle('on', o.dataset.g === gearVal);
+  });
+
+  // form title + button label
+  var titleEl = document.getElementById('form-title');
+  var submitBtn = document.getElementById('form-submit-btn');
+  if (titleEl) titleEl.textContent = entryToEdit ? 'Edit brew entry' : 'New brew entry';
+  if (submitBtn) submitBtn.textContent = entryToEdit ? 'Save changes' : 'Save entry';
+
+  updateFormStars();renderFlavorTags();showOv('form-ov');
+}
+
+function removeFav(id){
+  var e=entries.find(function(x){return x.id===id;});
+  if(!e) return;
+  e.fav=false;
+  e.favName='';
+  saveEntries();
+  renderProfile();
+}
+
+function editEntry(id){
+  var e = entries.find(function(x){return x.id===id;});
+  if(!e) return;
+  showForm(e);
+}
+
+function cancelForm(){
+  editingId=null;
+  closeOv('form-ov');
+}
+function toggleFavForm(){
+  isFavForm=!isFavForm;
+  document.getElementById('fav-dot').classList.toggle('on',isFavForm);
+  document.getElementById('fav-name-wrap').style.display=isFavForm?'block':'none';
+}
+document.querySelectorAll('.f-star').forEach(function(s){s.addEventListener('click',function(){formRating=+s.dataset.r;updateFormStars();});});
+function updateFormStars(){document.querySelectorAll('.f-star').forEach(function(s){s.classList.toggle('on',+s.dataset.r<=formRating);});}
+document.querySelectorAll('#f-roast-sel .gear-opt').forEach(function(o){o.addEventListener('click',function(){document.querySelectorAll('#f-roast-sel .gear-opt').forEach(function(x){x.classList.remove('on');});o.classList.add('on');});});
+document.querySelectorAll('#f-gear-sel .gear-opt').forEach(function(o){o.addEventListener('click',function(){document.querySelectorAll('#f-gear-sel .gear-opt').forEach(function(x){x.classList.remove('on');});o.classList.add('on');});});
+[{sl:'sl-acid',sv:'sv-acid'},{sl:'sl-sweet',sv:'sv-sweet'},{sl:'sl-body',sv:'sv-body'},{sl:'sl-finish',sv:'sv-finish'}].forEach(function(m){
+  document.getElementById(m.sl).addEventListener('input',function(){document.getElementById(m.sv).textContent=this.value;});
+});
+
+function submitEntry(){
+  var beanEl=document.getElementById('f-bean');
+  if(!beanEl){alert('Form not found');return;}
+  var bean=beanEl.value.trim();
+  if(!bean){
+    beanEl.style.borderColor='#E24B4A';
+    beanEl.focus();
+    setTimeout(function(){beanEl.style.borderColor='';},2000);
+    return;
+  }
+  var gearEl=document.querySelector('#f-gear-sel .gear-opt.on');
+  var roastEl=document.querySelector('#f-roast-sel .gear-opt.on');
+  var data={
+    bean:bean,
+    roaster:document.getElementById('f-roaster').value.trim(),
+    roast:roastEl?roastEl.dataset.r:'Light',
+    gear:gearEl?gearEl.dataset.g:'V60',
+    coffee:parseFloat(document.getElementById('f-coffee').value)||15,
+    ratio:parseFloat(document.getElementById('f-ratio').value)||15,
+    temp:parseFloat(document.getElementById('f-temp').value)||93,
+    grind:parseFloat(document.getElementById('f-grind').value)||28,
+    time:document.getElementById('f-time').value||'—',
+    rating:formRating,
+    cupping:{
+      acid:parseInt(document.getElementById('sl-acid').value)||3,
+      sweet:parseInt(document.getElementById('sl-sweet').value)||3,
+      body:parseInt(document.getElementById('sl-body').value)||3,
+      finish:parseInt(document.getElementById('sl-finish').value)||3
+    },
+    flavors:Array.from(selFlavors),
+    note:document.getElementById('f-note').value.trim(),
+    fav:isFavForm,
+    favName:isFavForm?(document.getElementById('f-fav-name').value.trim()||bean):'',
+  };
+
+  if(editingId!==null){
+    var idx=entries.findIndex(function(x){return x.id===editingId;});
+    if(idx!==-1){
+      data.id=entries[idx].id;
+      entries[idx]=data;
+    }
+    editingId=null;
+  } else {
+    data.id=nextId++;
+    entries.push(data);
+  }
+
+  saveEntries();
+  closeOv('form-ov');
+  updateStats();
+  renderProfile();
+  goScreen('scr-log');
+}
+
+/* PROFILE */
+function updateStats(){
+  document.getElementById('stat-brews').textContent=entries.length;
+  var avg=entries.length?(entries.reduce(function(s,e){return s+e.rating;},0)/entries.length).toFixed(1):'—';
+  document.getElementById('stat-avg').textContent=avg;
+  document.getElementById('stat-favs').textContent=entries.filter(function(e){return e.fav;}).length;
+}
+function renderProfile(){
+  updateStats();renderAvMain();
+  var favs=entries.filter(function(e){return e.fav;});
+  var el=document.getElementById('fav-list');
+  if(!favs.length){el.innerHTML='<div style="font-size:13px;color:var(--mt);padding:8px 0;">No favourite recipes yet.</div>';return;}
+  el.innerHTML=favs.map(function(e){
+    return '<div class="fav-card">'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;"><span style="font-size:16px;color:#c8a000;">&#9733;</span><span style="font-size:13px;font-weight:700;color:var(--fav-tx);flex:1;">'+e.favName+'</span>'
+      +'<button type="button" onclick="editEntry('+e.id+')" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;border:1.5px solid var(--bdm);background:var(--card);color:var(--fav-tx);cursor:pointer;font-family:\'Space Grotesk\',system-ui,sans-serif;">Edit</button>'
+      +'<button type="button" onclick="removeFav('+e.id+')" style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px;border:1.5px solid rgba(226,75,74,.4);background:var(--card);color:#E24B4A;cursor:pointer;font-family:\'Space Grotesk\',system-ui,sans-serif;">Remove</button>'
+      +'</div>'
+      +'<div style="font-size:12px;color:var(--fav-detail);line-height:1.7;">'+(e.roaster?e.roaster+' · ':'')+e.bean+'<br>'+e.gear+' · '+e.coffee+'g · 1:'+e.ratio+' · '+e.temp+'°C · '+e.grind+' clicks<br>'+(e.roast||'')+' roast'+(e.flavors.length?' · '+e.flavors.slice(0,3).join(', '):'')+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+/* BREW */
+/* THEME */
+var isDark=false;
+function applyTheme(dark){
+  isDark=dark;
+  document.documentElement.classList.toggle('dark',dark);
+  var tb=document.getElementById('theme-btn');
+  if(tb)tb.textContent=dark?'☀️':'🌙';
+}
+function toggleTheme(){applyTheme(!isDark);}
+if(window.matchMedia&&window.matchMedia('(prefers-color-scheme:dark)').matches) applyTheme(true);
+
+/* BREW */
+var brewPours=[],brewElapsed=0,brewPIdx=0,brewRunning=false,brewTicker=null,ripT=null,brewRecipe={},lastBeepedIdx=-1;
+var timeMode='minsec';
+var customPourMode=false;
+var customPours=[];
+var brewDirty=false;
+var manualPace=false;
+
+function getBrewInputs(){
+  return {
+    coffee:   parseFloat(document.getElementById('b-coffee').value)||15,
+    ratio:    parseFloat(document.getElementById('b-ratio').value)||15,
+    pour:     parseFloat(document.getElementById('b-pour').value)||45,
+    interval: parseFloat(document.getElementById('b-interval').value)||30,
+  };
+}
+
+function markBrewDirty(){
+  brewDirty=true;
+  recalcBrew();
+  var btn=document.getElementById('apply-brew-btn');
+  if(btn) btn.style.display='block';
+}
+
+function recalcBrew(){
+  if(customPourMode){
+    var ct=0;
+    customPours.forEach(function(p){ct+=p.g;});
+    var paceLabel = manualPace ? 'manual pace' : 'custom timing';
+    document.getElementById('brew-recipe-box').innerHTML=
+      Math.round(ct)+'g water &nbsp;·&nbsp; '+customPours.length+' pours &nbsp;·&nbsp; '+paceLabel;
+    document.getElementById('total-w').textContent=Math.round(ct);
+    return;
+  }
+  var r=getBrewInputs();
+  var total=Math.round(r.coffee*r.ratio);
+  var num=Math.ceil(total/r.pour);
+  var mins=Math.round(num*r.interval/60);
+  document.getElementById('brew-recipe-box').innerHTML=
+    total+'g water &nbsp;·&nbsp; '+num+' pours &nbsp;·&nbsp; ~'+mins+' min';
+  document.getElementById('total-w').textContent=total;
+}
+
+function toggleCustomPourMode(){
+  customPourMode=!customPourMode;
+  var sw=document.getElementById('custom-pour-switch');
+  var knob=document.getElementById('custom-pour-knob');
+  var editor=document.getElementById('custom-pour-editor');
+  sw.style.background = customPourMode ? 'var(--y)' : 'var(--bdm)';
+  knob.style.left = customPourMode ? '18px' : '2px';
+  editor.style.display = customPourMode ? 'block' : 'none';
+  if(customPourMode && customPours.length===0){
+    var r=getBrewInputs();
+    var total=Math.round(r.coffee*r.ratio);
+    var acc=0,t=0;
+    customPours=[];
+    while(acc<total){
+      var gv=Math.min(r.pour,total-acc);acc+=gv;
+      customPours.push({g:Math.round(gv),at:t});
+      t+=r.interval;
+    }
+  }
+  renderCustomPourRows();
+  markBrewDirty();
+}
+
+function setTimingMode(mode){
+  manualPace = (mode==='manual');
+  document.getElementById('tm-timed').className = manualPace ? 'tm-btn' : 'tm-btn tm-on';
+  document.getElementById('tm-manual').className = manualPace ? 'tm-btn tm-on' : 'tm-btn';
+  renderCustomPourRows();
+  markBrewDirty();
+}
+
+function renderCustomPourRows(){
+  var el=document.getElementById('custom-pour-rows');
+  el.innerHTML=customPours.map(function(p,i){
+    var label = i===0 ? 'Bloom' : 'Pour '+i;
+    var timeCol = '';
+    if(!manualPace){
+      timeCol = '<div style="flex:1;display:flex;align-items:baseline;gap:2px;">'
+        +'<input type="number" value="'+p.at+'" min="0" step="1" oninput="updateCustomPour('+i+',\'at\',this.value)" style="width:100%;font-size:13px;font-weight:700;color:var(--tx);background:var(--surf);border:none;border-radius:6px;padding:4px 6px;font-family:\'Space Grotesk\',system-ui,sans-serif;outline:none;">'
+        +'<span style="font-size:9px;font-weight:700;color:var(--mt);">s</span>'
+        +'</div>';
+    }
+    return '<div style="display:flex;align-items:center;gap:6px;background:var(--card);border-radius:8px;padding:6px 8px;">'
+      +'<span style="font-size:10px;font-weight:700;color:var(--mt);width:42px;flex-shrink:0;">'+label+'</span>'
+      +'<div style="flex:1;display:flex;align-items:baseline;gap:2px;">'
+        +'<input type="number" value="'+p.g+'" min="1" step="1" oninput="updateCustomPour('+i+',\'g\',this.value)" style="width:100%;font-size:13px;font-weight:700;color:var(--tx);background:var(--surf);border:none;border-radius:6px;padding:4px 6px;font-family:\'Space Grotesk\',system-ui,sans-serif;outline:none;">'
+        +'<span style="font-size:9px;font-weight:700;color:var(--mt);">g</span>'
+      +'</div>'
+      +timeCol
+      +(customPours.length>1?'<button type="button" onclick="removeCustomPour('+i+')" style="background:none;border:none;cursor:pointer;color:var(--mt);font-size:14px;padding:2px 4px;flex-shrink:0;">&#215;</button>':'<span style="width:18px;flex-shrink:0;"></span>')
+      +'</div>';
+  }).join('');
+}
+
+function updateCustomPour(idx,field,val){
+  var n=parseFloat(val);
+  if(isNaN(n)) n=0;
+  customPours[idx][field]=n;
+  markBrewDirty();
+}
+
+function addCustomPourRow(){
+  var last=customPours[customPours.length-1];
+  var nextAt = last ? last.at+30 : 0;
+  customPours.push({g:45, at:nextAt});
+  renderCustomPourRows();
+  markBrewDirty();
+}
+
+function removeCustomPour(idx){
+  customPours.splice(idx,1);
+  renderCustomPourRows();
+  markBrewDirty();
+}
+
+function applyBrewChanges(){
+  brewDirty=false;
+  var btn=document.getElementById('apply-brew-btn');
+  if(btn) btn.style.display='none';
+  buildBrewPours();
+  resetBrew();
+}
+
+function nextPour(){
+  if(brewPIdx>=brewPours.length) return;
+  var p=brewPours[brewPIdx];
+  setCircle(p.stop/brewRecipe.total, p.stop/brewRecipe.total, false);
+  hilite(brewPIdx, 1);
+  brewPIdx++;
+  lastBeepedIdx=-1;
+  if(brewPIdx>=brewPours.length){
+    finishBrew();
+  } else {
+    beepPour();
+    lastBeepedIdx=brewPIdx;
+    var np=brewPours[brewPIdx];
+    document.getElementById('c-pour-tag').className='c-pour-tag active';
+    document.getElementById('c-pour-tag').textContent=np.label;
+    document.getElementById('c-num').textContent=np.stop;
+    var badge=document.getElementById('cd-badge');
+    badge.className='cd-badge cd-pour';badge.textContent='Tap next when done';
+    hilite(brewPIdx, 0);
+  }
+}
+
+function isManualBrew(){ return customPourMode && manualPace; }
+
+function buildBrewPours(){
+  if(customPourMode){
+    if(manualPace){
+      var total=0;
+      customPours.forEach(function(p){total+=p.g;});
+      brewRecipe={coffee:null,ratio:null,pour:null,interval:null,total:Math.round(total),manualPace:true};
+      brewPours=[];var acc=0;
+      customPours.forEach(function(p,i){
+        acc+=p.g;
+        brewPours.push({at:-1,stop:Math.round(acc),g:Math.round(p.g),label:i===0?'Bloom':'Pour '+i});
+      });
+    } else {
+      var sorted=customPours.slice().sort(function(a,b){return a.at-b.at;});
+      var total2=0;
+      sorted.forEach(function(p){total2+=p.g;});
+      brewRecipe={coffee:null,ratio:null,pour:null,interval:null,total:Math.round(total2),manualPace:false};
+      brewPours=[];var acc2=0;
+      sorted.forEach(function(p,i){
+        acc2+=p.g;
+        brewPours.push({at:Math.round(p.at),stop:Math.round(acc2),g:Math.round(p.g),label:i===0?'Bloom':'Pour '+i});
+      });
+    }
+  } else {
+    var r=getBrewInputs();
+    var total3=Math.round(r.coffee*r.ratio);
+    brewRecipe={coffee:r.coffee,ratio:r.ratio,pour:r.pour,interval:r.interval,total:total3,manualPace:false};
+    brewPours=[];var acc3=0,t=0;
+    while(acc3<total3){
+      var gv=Math.min(r.pour,total3-acc3);acc3+=gv;
+      brewPours.push({at:t,stop:Math.round(acc3),g:Math.round(gv),label:brewPours.length===0?'Bloom':'Pour '+brewPours.length});
+      t+=r.interval;
+    }
+  }
+  var sw=document.getElementById('steps-wrap');
+  sw.innerHTML=brewPours.map(function(p,i){
+    var atLabel = p.at<0 ? 'manual' : '@'+fmtT(p.at);
+    return '<div class="step-r" id="sr'+i+'"><div class="step-prog" id="sp'+i+'" style="width:0%;"></div><div class="step-idx">'+(i+1)+'</div><div style="flex:1"><div class="sn">'+p.label+'</div><div class="sat">'+atLabel+'</div></div><div class="ss">'+p.stop+'g</div></div>';
+  }).join('');
+}
+
+function rebuildAndReset(){buildBrewPours();resetBrew();}
+
+function toggleTimeMode(){
+  timeMode=timeMode==='minsec'?'sec':'minsec';
+  document.getElementById('tt-minsec').style.background=timeMode==='minsec'?'var(--blk)':'transparent';
+  document.getElementById('tt-minsec').style.color=timeMode==='minsec'?'var(--y)':'var(--mt)';
+  document.getElementById('tt-sec').style.background=timeMode==='sec'?'var(--blk)':'transparent';
+  document.getElementById('tt-sec').style.color=timeMode==='sec'?'var(--y)':'var(--mt)';
+  document.getElementById('elapsed').textContent=fmtT(brewElapsed);
+  brewPours.forEach(function(p,i){
+    var el=document.getElementById('sr'+i);
+    if(el){var at=el.querySelector('.sat');if(at)at.textContent='@'+fmtT(p.at);}
+  });
+}
+
+function fmtT(s){
+  if(timeMode==='sec') return s+'s';
+  return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60);
+}
+
+function renderBrewGearList(){
+  document.querySelectorAll('.gear-tgl-btn').forEach(function(b){
+    b.classList.toggle('on', b.dataset.g===selectedGear);
+    var icoEl=b.querySelector('.gtb-ico');
+    if(icoEl && !icoEl.innerHTML) icoEl.innerHTML=GEAR_SVG[b.dataset.g]||'';
+  });
+  renderGearInfoPanel();
+}
+
+function renderGearInfoPanel(){
+  var g=GEARS.find(function(x){return x.id===selectedGear;})||GEARS[0];
+  var panel=document.getElementById('gear-info-panel');
+  if(!panel) return;
+  panel.innerHTML=g.tips.map(function(t){
+    return '<div class="tip-row"><div class="tip-dot" style="background:'+t.dot+';margin-top:3px;"></div><div class="tip-text"><b>'+t.t+'</b> — '+t.b+'</div></div>';
+  }).join('');
+}
+
+function toggleGearInfoPanel(){
+  var p=document.getElementById('gear-info-panel');
+  var btn=document.getElementById('gear-info-btn');
+  if(!p) return;
+  var showing=p.style.display==='block';
+  p.style.display=showing?'none':'block';
+  btn.style.background=showing?'var(--card)':'var(--y)';
+  btn.style.color=showing?'var(--mt)':'var(--yd)';
+  btn.style.borderColor=showing?'var(--bd)':'var(--y)';
+}
+
+function toggleBrewTips(e,id){e.stopPropagation();toggleGearInfoPanel();}
+
+function renderBrewScreen(){
+  renderBrewGearList();
+  recalcBrew();
+  buildBrewPours();
+  resetBrew();
+  brewDirty=false;
+  var btn=document.getElementById('apply-brew-btn');
+  if(btn) btn.style.display='none';
+}
+
+function switchBrewGear(g){
+  selectedGear=g;
+  document.querySelectorAll('.gear-tgl-btn').forEach(function(b){
+    b.classList.toggle('on', b.dataset.g===g);
+  });
+  renderGearInfoPanel();
+  // close info panel on gear change
+  var p=document.getElementById('gear-info-panel');
+  var btn=document.getElementById('gear-info-btn');
+  if(p){p.style.display='none';}
+  if(btn){btn.style.background='var(--card)';btn.style.color='var(--mt)';btn.style.borderColor='var(--bd)';}
+}
+
+function hilite(idx,pourPct){
+  pourPct=pourPct||0;
+  brewPours.forEach(function(_,i){
+    var e=document.getElementById('sr'+i);if(!e)return;
+    var prog=document.getElementById('sp'+i);
+    e.classList.remove('active','done');
+    if(i<idx){e.classList.add('done');if(prog)prog.style.width='100%';}
+    else if(i===idx){e.classList.add('active');if(prog)prog.style.width=(pourPct*100).toFixed(1)+'%';}
+    else{if(prog)prog.style.width='0%';}
+  });
+}
+function setCircle(dp,ap,pouring){
+  var mx=68;
+  var coffeeR=document.getElementById('r-coffee');
+  var activeR=document.getElementById('r-active');
+
+  // coffee liquid level follows the active (current) progress
+  coffeeR.setAttribute('r',Math.round(mx*Math.min(ap,1)));
+
+  // pour glow: visible while actively pouring, fades out once settled
+  activeR.setAttribute('r',Math.round(mx*Math.min(ap,1)));
+  activeR.setAttribute('opacity', pouring ? '0.9' : '0');
+
+  // deepen the coffee color as overall brew progresses (dp = done so far)
+  var stops=document.querySelectorAll('#coffee-grad stop');
+  if(stops.length===3){
+    var t=Math.min(dp,1);
+    stops[0].setAttribute('stop-opacity', (0.35+0.30*t).toFixed(2));
+    stops[1].setAttribute('stop-opacity', (0.55+0.30*t).toFixed(2));
+    stops[2].setAttribute('stop-opacity', (0.70+0.25*t).toFixed(2));
+  }
+
+  // flip center text to light color once coffee covers most of the circle
+  var cnum=document.getElementById('c-num');
+  var cunit=document.querySelector('.c-unit');
+  var ctag=document.getElementById('c-pour-tag');
+  if(ap>0.55){
+    cnum.style.color='#fff8ec';
+    if(cunit) cunit.style.color='rgba(255,248,236,.75)';
+    if(ctag && !ctag.classList.contains('active')) ctag.style.color='rgba(255,248,236,.75)';
+  } else {
+    cnum.style.color='var(--tx)';
+    if(cunit) cunit.style.color='var(--mt)';
+    if(ctag && !ctag.classList.contains('active')) ctag.style.color='var(--mt)';
+  }
+}
+function startRipple(){var g=document.getElementById('ripple-g');var op=0.9,dir=-1;clearInterval(ripT);ripT=setInterval(function(){op+=dir*.07;if(op<=.05)dir=1;if(op>=.88)dir=-1;g.setAttribute('opacity',op.toFixed(2));},55);}
+function stopRipple(){clearInterval(ripT);document.getElementById('ripple-g').setAttribute('opacity',0);}
+
+var AC2=window.AudioContext||window.webkitAudioContext;var ac2=null;
+function ensureAC(){
+  if(!ac2) ac2=new AC2();
+  if(ac2.state==='suspended'){
+    ac2.resume().catch(function(e){console.warn('AC resume failed',e);});
+  }
+  return ac2;
+}
+function beepPour(){
+  try{
+    var ctx=ensureAC();
+    var play=function(){
+      [[880,0],[1108,.10],[1320,.20]].forEach(function(nd){
+        var f=nd[0],d=nd[1];var o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=f;
+        var t=ctx.currentTime+d;
+        g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.18,t+.04);g.gain.exponentialRampToValueAtTime(.001,t+.45);
+        o.start(t);o.stop(t+.50);
+      });
+    };
+    if(ctx.state==='suspended'){
+      ctx.resume().then(play).catch(function(){play();});
+    } else {
+      play();
+    }
+  }catch(err){console.warn('beep err',err);}
+}
+
+function brewTick(){
+  brewElapsed++;
+  document.getElementById('elapsed').textContent=fmtT(brewElapsed);
+  if(brewPIdx>=brewPours.length){finishBrew();return;}
+  var p=brewPours[brewPIdx];
+  var prevStop=brewPIdx>0?brewPours[brewPIdx-1].stop:0;
+  var donePct=prevStop/brewRecipe.total;
+  var badge=document.getElementById('cd-badge');
+
+  if(isManualBrew()){
+    // manual pace: clock runs, show target, no auto-progression
+    setCircle(donePct,donePct,false);
+    document.getElementById('c-pour-tag').className='c-pour-tag active';
+    document.getElementById('c-pour-tag').textContent=p.label;
+    document.getElementById('c-num').textContent=p.stop;
+    badge.className='cd-badge cd-pour';badge.textContent='Tap next when done';
+    hilite(brewPIdx,0);
+    document.getElementById('next-pour-btn').style.display='block';
+    return;
+  }
+
+  // timed mode
+  var wait=p.at-brewElapsed;
+
+  if(wait<=0 && lastBeepedIdx!==brewPIdx){
+    lastBeepedIdx=brewPIdx;
+    beepPour();
+  }
+
+  if(wait>0){
+    stopRipple();setCircle(donePct,donePct,false);
+    document.getElementById('c-pour-tag').className='c-pour-tag';
+    document.getElementById('c-pour-tag').textContent='Waiting';
+    document.getElementById('c-num').textContent=p.stop;
+    badge.className='cd-badge cd-wait';badge.textContent='Next pour in '+fmtT(wait);
+    hilite(brewPIdx,0);
+  } else {
+    var frac=Math.min((brewElapsed-p.at)/brewRecipe.interval,1);
+    setCircle(donePct,(prevStop+p.g*frac)/brewRecipe.total,true);
+    startRipple();
+    document.getElementById('c-pour-tag').className='c-pour-tag active';
+    document.getElementById('c-pour-tag').textContent=p.label;
+    document.getElementById('c-num').textContent=p.stop;
+    badge.className='cd-badge cd-pour';badge.textContent='Pouring...';
+    hilite(brewPIdx,frac);
+    if(frac>=1){
+      stopRipple();setCircle(p.stop/brewRecipe.total,p.stop/brewRecipe.total,false);
+      brewPIdx++;
+      if(brewPIdx>=brewPours.length){finishBrew();return;}
+    }
+  }
+}
+
+function toggleBrew(){
+  if(brewRunning){
+    brewRunning=false;clearInterval(brewTicker);
+    document.getElementById('main-btn').textContent='Resume';
+  } else {
+    ensureAC();
+    brewRunning=true;
+    if(brewElapsed===0 && brewPIdx===0 && lastBeepedIdx!==0){
+      lastBeepedIdx=0;
+      beepPour();
+    }
+    if(isManualBrew()){
+      document.getElementById('next-pour-btn').style.display='block';
+    }
+    brewTicker=setInterval(brewTick,1000);
+    document.getElementById('main-btn').textContent='Pause';
+  }
+}
+function resetBrew(){
+  clearInterval(brewTicker);stopRipple();
+  brewRunning=false;brewElapsed=0;brewPIdx=0;lastBeepedIdx=-1;
+  var btn=document.getElementById('main-btn');btn.textContent='Start';btn.disabled=false;
+  document.getElementById('elapsed').textContent=fmtT(0);
+  setCircle(0,0,false);
+  document.getElementById('c-pour-tag').className='c-pour-tag';
+  document.getElementById('c-pour-tag').textContent='Ready';
+  document.getElementById('c-num').textContent='—';
+  var badge=document.getElementById('cd-badge');badge.className='cd-badge cd-idle';badge.textContent='Press start';
+  document.getElementById('finish-card').style.display='none';
+  document.getElementById('next-pour-btn').style.display='none';
+  hilite(-1,0);
+}
+function finishBrew(){
+  clearInterval(brewTicker);stopRipple();brewRunning=false;
+  setCircle(1,1,false);document.getElementById('main-btn').disabled=true;
+  document.getElementById('finish-card').style.display='block';
+  document.getElementById('fin-sub').textContent=brewRecipe.coffee+'g · '+brewRecipe.total+'g water · '+fmtT(brewElapsed);
+}
+function promptLog(){document.getElementById('finish-card').style.display='none';resetBrew();showForm();}
+
+/* NAV */
+function goScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('on');});
+  var map={'scr-log':'nav-log','scr-brew':'nav-brew','scr-profile':'nav-profile'};
+  if(map[id]) document.getElementById(map[id]).classList.add('on');
+  if(id==='scr-log'){renderRecipes();renderHistory();switchLogTab(logTab);}
+  if(id==='scr-brew') renderBrewScreen();
+  if(id==='scr-profile') renderProfile();
+}
+function showOv(id){if(id==='avatar-ov')initAvBuilder();document.getElementById(id).classList.add('show');}
+function closeOv(id){document.getElementById(id).classList.remove('show');}
+
+/* ═══════════════════════════════════════
+   RECIPES
+═══════════════════════════════════════ */
+var recipes = [];
+var nextRecipeId = 1;
+var editingRecipeId = null;
+var histRating = 4;
+var histFlavors = new Set();
+var selectedHistRecipeId = null;
+
+function saveRecipes(){
+  try{localStorage.setItem('bl_recipes',JSON.stringify(recipes));localStorage.setItem('bl_rid',String(nextRecipeId));}catch(e){}
+}
+function loadRecipes(){
+  try{
+    var s=localStorage.getItem('bl_recipes');
+    var n=localStorage.getItem('bl_rid');
+    if(s){var p=JSON.parse(s);if(Array.isArray(p))recipes=p;}
+    if(n&&parseInt(n)>nextRecipeId)nextRecipeId=parseInt(n);
+  }catch(e){}
+}
+
+// ── current log tab ──
+var logTab = 'recipes';
+
+function switchLogTab(tab){
+  logTab = tab;
+  document.getElementById('tab-recipes').className = tab==='recipes' ? 'tab-btn on' : 'tab-btn';
+  document.getElementById('tab-history').className = tab==='history' ? 'tab-btn on' : 'tab-btn';
+  document.getElementById('log-recipes-list').style.display = tab==='recipes' ? '' : 'none';
+  document.getElementById('log-history-list').style.display = tab==='history' ? '' : 'none';
+  document.getElementById('log-add-btn').textContent = tab==='recipes' ? '+ Recipe' : '+ Session';
+}
+
+function logAddNew(){
+  if(logTab==='recipes') showRecipeForm();
+  else showHistForm();
+}
+
+/* ── render recipes ── */
+function renderRecipes(){
+  var el=document.getElementById('log-recipes-list');
+  if(!recipes.length){
+    el.innerHTML='<div style="text-align:center;padding:40px 0;color:var(--mt);font-size:13px;">No recipes yet.<br>Tap + Recipe to add one.</div>';
+    return;
+  }
+  el.innerHTML=recipes.map(function(r){
+    return '<div class="recipe-card">'
+      +'<div class="rc-head">'
+        +'<div><div class="rc-name">'+r.name+'</div><div class="rc-sub">'+(r.bean?r.bean:'—')+(r.roaster?' · '+r.roaster:'')+'</div></div>'
+        +'<span class="pill py" style="flex-shrink:0;">'+r.gear+'</span>'
+      +'</div>'
+      +'<div class="rc-chips">'
+        +'<span class="pill pg">'+r.coffee+'g · 1:'+r.ratio+'</span>'
+        +'<span class="pill pg">'+r.temp+'°C · '+r.grind+' clicks</span>'
+        +'<span class="pill pg">+'+r.pour+'g / '+r.interval+'s</span>'
+        +(r.roast?'<span class="pill pa">'+r.roast+'</span>':'')
+      +'</div>'
+      +(r.note?'<div style="padding:0 13px 10px;font-size:12px;color:var(--mt);font-style:italic;">"'+r.note+'"</div>':'')
+      +'<div class="rc-actions">'
+        +'<button class="rc-btn brew" onclick="brewFromRecipe('+r.id+')">Brew this &#8594;</button>'
+        +'<button class="rc-btn" onclick="editRecipe('+r.id+')">Edit</button>'
+        +'<button class="rc-btn del" onclick="deleteRecipe('+r.id+')">Delete</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+/* ── recipe form ── */
+function showRecipeForm(recipeToEdit){
+  editingRecipeId = recipeToEdit ? recipeToEdit.id : null;
+  var isEdit = !!recipeToEdit;
+  document.getElementById('recipe-form-title').textContent = isEdit ? 'Edit recipe' : 'New recipe';
+  document.getElementById('recipe-submit-btn').textContent = isEdit ? 'Save changes' : 'Save recipe';
+  document.getElementById('rf-name').value    = isEdit ? recipeToEdit.name    : '';
+  document.getElementById('rf-bean').value    = isEdit ? (recipeToEdit.bean||'') : '';
+  document.getElementById('rf-roaster').value = isEdit ? (recipeToEdit.roaster||'') : '';
+  document.getElementById('rf-coffee').value  = isEdit ? recipeToEdit.coffee  : 15;
+  document.getElementById('rf-ratio').value   = isEdit ? recipeToEdit.ratio   : 15;
+  document.getElementById('rf-pour').value    = isEdit ? recipeToEdit.pour    : 45;
+  document.getElementById('rf-interval').value= isEdit ? recipeToEdit.interval: 30;
+  document.getElementById('rf-temp').value    = isEdit ? recipeToEdit.temp    : 93;
+  document.getElementById('rf-grind').value   = isEdit ? recipeToEdit.grind   : 28;
+  document.getElementById('rf-note').value    = isEdit ? (recipeToEdit.note||'') : '';
+  var roastVal = isEdit ? (recipeToEdit.roast||'Light') : 'Light';
+  document.querySelectorAll('#rf-roast-sel .gear-opt').forEach(function(o){o.classList.toggle('on',o.dataset.r===roastVal);});
+  var gearVal = isEdit ? (recipeToEdit.gear||'V60') : 'V60';
+  document.querySelectorAll('#rf-gear-sel .gear-opt').forEach(function(o){o.classList.toggle('on',o.dataset.g===gearVal);});
+  showOv('recipe-ov');
+}
+
+function editRecipe(id){
+  var r=recipes.find(function(x){return x.id===id;});
+  if(r) showRecipeForm(r);
+}
+
+function submitRecipe(){
+  var name=document.getElementById('rf-name').value.trim()||document.getElementById('rf-bean').value.trim();
+  if(!name){document.getElementById('rf-name').style.borderColor='#E24B4A';document.getElementById('rf-name').focus();setTimeout(function(){document.getElementById('rf-name').style.borderColor='';},2000);return;}
+  var gear=document.querySelector('#rf-gear-sel .gear-opt.on');
+  var roast=document.querySelector('#rf-roast-sel .gear-opt.on');
+  var data={
+    name:name,
+    bean:document.getElementById('rf-bean').value.trim(),
+    roaster:document.getElementById('rf-roaster').value.trim(),
+    roast:roast?roast.dataset.r:'Light',
+    gear:gear?gear.dataset.g:'V60',
+    coffee:parseFloat(document.getElementById('rf-coffee').value)||15,
+    ratio:parseFloat(document.getElementById('rf-ratio').value)||15,
+    pour:parseFloat(document.getElementById('rf-pour').value)||45,
+    interval:parseFloat(document.getElementById('rf-interval').value)||30,
+    temp:parseFloat(document.getElementById('rf-temp').value)||93,
+    grind:parseFloat(document.getElementById('rf-grind').value)||28,
+    note:document.getElementById('rf-note').value.trim(),
+  };
+  if(editingRecipeId!==null){
+    var idx=recipes.findIndex(function(x){return x.id===editingRecipeId;});
+    if(idx!==-1){data.id=editingRecipeId;recipes[idx]=data;}
+    editingRecipeId=null;
+  } else {
+    data.id=nextRecipeId++;
+    recipes.push(data);
+  }
+  saveRecipes();
+  closeOv('recipe-ov');
+  renderRecipes();
+}
+
+function deleteRecipe(id){
+  if(!confirm('Delete this recipe?')) return;
+  recipes=recipes.filter(function(r){return r.id!==id;});
+  saveRecipes();
+  renderRecipes();
+}
+
+function brewFromRecipe(id){
+  var r=recipes.find(function(x){return x.id===id;});
+  if(!r) return;
+  // Push values into brew screen inputs
+  document.getElementById('b-coffee').value   = r.coffee;
+  document.getElementById('b-ratio').value    = r.ratio;
+  document.getElementById('b-pour').value     = r.pour;
+  document.getElementById('b-interval').value = r.interval;
+  selectedGear = r.gear;
+  goScreen('scr-brew');
+}
+
+/* ─── recipe selectors init ─── */
+document.querySelectorAll('#rf-roast-sel .gear-opt').forEach(function(o){
+  o.addEventListener('click',function(){document.querySelectorAll('#rf-roast-sel .gear-opt').forEach(function(x){x.classList.remove('on');});o.classList.add('on');});
+});
+document.querySelectorAll('#rf-gear-sel .gear-opt').forEach(function(o){
+  o.addEventListener('click',function(){document.querySelectorAll('#rf-gear-sel .gear-opt').forEach(function(x){x.classList.remove('on');});o.classList.add('on');});
+});
+
+/* ═══════════════════════════════════════
+   HISTORY
+═══════════════════════════════════════ */
+var histEntries = [];
+var nextHistId = 1;
+
+function saveHist(){
+  try{localStorage.setItem('bl_hist',JSON.stringify(histEntries));localStorage.setItem('bl_hid',String(nextHistId));}catch(e){}
+}
+function loadHist(){
+  try{
+    var s=localStorage.getItem('bl_hist');
+    var n=localStorage.getItem('bl_hid');
+    if(s){var p=JSON.parse(s);if(Array.isArray(p))histEntries=p;}
+    if(n&&parseInt(n)>nextHistId)nextHistId=parseInt(n);
+  }catch(e){}
+}
+
+function renderHistory(){
+  var el=document.getElementById('log-history-list');
+  if(!histEntries.length){
+    el.innerHTML='<div style="text-align:center;padding:40px 0;color:var(--mt);font-size:13px;">No sessions yet.<br>Tap + Session after your brew.</div>';
+    return;
+  }
+  el.innerHTML=[...histEntries].reverse().map(function(h){
+    return '<div class="hist-card" onclick="openHistEntry('+h.id+')">'
+      +'<div class="hc-head">'
+        +'<div><div class="hc-bean">'+h.bean+'</div><div class="hc-sub">'+(h.roaster?h.roaster+' · ':'')+h.gear+' · '+h.coffee+'g · 1:'+h.ratio+(h.date?' · '+h.date:'')+'</div></div>'
+        +'<span class="stars" style="font-size:12px;">'+'★'.repeat(h.rating)+'☆'.repeat(5-h.rating)+'</span>'
+      +'</div>'
+      +'<div class="hc-chips">'
+        +'<span class="pill pg">'+h.temp+'°C</span>'
+        +'<span class="pill pg">'+h.grind+' clicks</span>'
+        +(h.time?'<span class="pill pg">'+h.time+'</span>':'')
+        +h.flavors.slice(0,2).map(function(f){return '<span class="pill pb">'+f+'</span>';}).join('')
+      +'</div>'
+      +(h.note?'<div class="hc-note">"'+h.note+'"</div>':'')
+      +'</div>';
+  }).join('');
+}
+
+function openHistEntry(id){
+  var h=histEntries.find(function(x){return x.id===id;});
+  if(!h) return;
+  var CC={acid:'#378ADD',sweet:'#1D9E75',body:'#EF9F27',finish:'#a855f7'};
+  var CL={acid:'Acidity',sweet:'Sweetness',body:'Body',finish:'Finish'};
+  document.getElementById('ov-body').innerHTML=
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span class="pill pg">'+h.gear+'</span>'+(h.roast?'<span class="pill pa">'+h.roast+'</span>':'')+'</div>'
+    +'<div style="font-size:22px;font-weight:700;margin-bottom:4px;">'+h.bean+'</div>'
+    +(h.roaster?'<div style="font-size:13px;color:var(--mt);margin-bottom:8px;">'+h.roaster+(h.date?' · '+h.date:'')+'</div>':'')
+    +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;"><span class="stars" style="font-size:14px;">'+'★'.repeat(h.rating)+'☆'.repeat(5-h.rating)+'</span></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">'
+    +'<div style="background:var(--surf);border-radius:12px;padding:10px 12px;"><div style="font-size:20px;font-weight:700;">'+h.coffee+'g</div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mt);">Coffee</div></div>'
+    +'<div style="background:var(--surf);border-radius:12px;padding:10px 12px;"><div style="font-size:20px;font-weight:700;">1 : '+h.ratio+'</div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mt);">Ratio</div></div>'
+    +'<div style="background:var(--surf);border-radius:12px;padding:10px 12px;"><div style="font-size:20px;font-weight:700;">'+h.temp+'°C</div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mt);">Temp</div></div>'
+    +'<div style="background:var(--surf);border-radius:12px;padding:10px 12px;"><div style="font-size:20px;font-weight:700;">'+(h.time||'—')+'</div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mt);">Time</div></div>'
+    +'</div>'
+    +'<span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mt);margin-bottom:8px;display:block;">Cupping profile</span>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">'+['acid','sweet','body','finish'].map(function(k){return '<div style="background:var(--surf);border-radius:12px;padding:10px 12px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--mt);">'+CL[k]+'</div><div style="height:6px;background:var(--bd);border-radius:3px;overflow:hidden;margin:6px 0 4px;"><div style="height:6px;border-radius:3px;background:'+CC[k]+';width:'+(h.cupping[k]/5*100)+'%;"></div></div><div style="font-size:13px;font-weight:700;">'+h.cupping[k]+'/5</div></div>';}).join('')+'</div>'
+    +(h.flavors.length?'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;">'+h.flavors.map(function(f){return '<span class="pill pb">'+f+'</span>';}).join('')+'</div>':'')
+    +(h.note?'<div style="background:var(--surf);border-radius:12px;padding:12px;font-size:13px;color:var(--mt);line-height:1.6;margin-bottom:14px;">"'+h.note+'"</div>':'')
+    +'<div style="display:flex;gap:8px;">'
+    +'<button class="btn-blk" style="flex:1;" onclick="brewFromHistEntry('+h.id+')">Brew this &#8594;</button>'
+    +'<button class="btn-out" style="width:auto;padding:12px 16px;" onclick="deleteHistEntry('+h.id+')">Delete</button>'
+    +'</div>';
+  showOv('entry-ov');
+}
+
+function brewFromHistEntry(id){
+  var h=histEntries.find(function(x){return x.id===id;});
+  if(!h) return;
+  document.getElementById('b-coffee').value=h.coffee;
+  document.getElementById('b-ratio').value=h.ratio;
+  selectedGear=h.gear;
+  closeOv('entry-ov');
+  goScreen('scr-brew');
+}
+
+function deleteHistEntry(id){
+  if(!confirm('Delete this session?')) return;
+  histEntries=histEntries.filter(function(x){return x.id!==id;});
+  saveHist();
+  closeOv('entry-ov');
+  renderHistory();
+}
+
+/* ── history form ── */
+function renderRecipePicker(){
+  var el=document.getElementById('hf-recipe-pick');
+  if(!recipes.length){el.innerHTML='<span style="font-size:12px;color:var(--mt);">No saved recipes — fill in manually below.</span>';return;}
+  el.innerHTML='<div style="display:flex;gap:5px;flex-wrap:wrap;">'
+    +recipes.map(function(r){
+      return '<button type="button" class="gear-opt '+(selectedHistRecipeId===r.id?'on':'')+'" onclick="pickHistRecipe('+r.id+')" style="font-size:11px;">'+r.name+'</button>';
+    }).join('')
+    +'<button type="button" class="gear-opt '+(selectedHistRecipeId===null?'on':'')+'" onclick="pickHistRecipe(null)" style="font-size:11px;">Manual</button>'
+    +'</div>';
+}
+
+function pickHistRecipe(id){
+  selectedHistRecipeId=id;
+  renderRecipePicker();
+  if(id!==null){
+    var r=recipes.find(function(x){return x.id===id;});
+    if(!r) return;
+    document.getElementById('hf-bean').value   = r.bean||'';
+    document.getElementById('hf-roaster').value= r.roaster||'';
+    document.getElementById('hf-coffee').value = r.coffee;
+    document.getElementById('hf-ratio').value  = r.ratio;
+    document.getElementById('hf-temp').value   = r.temp;
+    document.getElementById('hf-grind').value  = r.grind;
+    document.querySelectorAll('#hf-gear-sel .gear-opt').forEach(function(o){o.classList.toggle('on',o.dataset.g===r.gear);});
+  }
+}
+
+function showHistForm(){
+  selectedHistRecipeId = null;
+  histRating = 4;
+  histFlavors = new Set();
+  document.getElementById('hf-bean').value='';
+  document.getElementById('hf-roaster').value='';
+  document.getElementById('hf-coffee').value=15;
+  document.getElementById('hf-ratio').value=15;
+  document.getElementById('hf-temp').value=93;
+  document.getElementById('hf-grind').value=28;
+  document.getElementById('hf-time').value='';
+  document.getElementById('hf-note').value='';
+  ['hs-acid','hs-sweet','hs-body','hs-finish'].forEach(function(id){document.getElementById(id).value=3;});
+  ['hv-acid','hv-sweet','hv-body','hv-finish'].forEach(function(id,i){document.getElementById(id).textContent='3';});
+  updateHistStars();
+  renderHistFlavors();
+  renderRecipePicker();
+  showOv('hist-ov');
+}
+
+function updateHistStars(){
+  document.querySelectorAll('#hf-stars .f-star').forEach(function(s){s.classList.toggle('on',+s.dataset.r<=histRating);});
+}
+
+document.querySelectorAll('#hf-stars .f-star').forEach(function(s){
+  s.addEventListener('click',function(){histRating=+s.dataset.r;updateHistStars();});
+});
+
+document.querySelectorAll('#hf-gear-sel .gear-opt').forEach(function(o){
+  o.addEventListener('click',function(){document.querySelectorAll('#hf-gear-sel .gear-opt').forEach(function(x){x.classList.remove('on');});o.classList.add('on');});
+});
+
+[{sl:'hs-acid',sv:'hv-acid'},{sl:'hs-sweet',sv:'hv-sweet'},{sl:'hs-body',sv:'hv-body'},{sl:'hs-finish',sv:'hv-finish'}].forEach(function(m){
+  var el=document.getElementById(m.sl);
+  if(el) el.addEventListener('input',function(){document.getElementById(m.sv).textContent=this.value;});
+});
+
+function renderHistFlavors(){
+  var el=document.getElementById('hf-flavor-tags');
+  el.innerHTML=FLAVORS.map(function(f){return '<div class="ftag '+(histFlavors.has(f)?'on':'')+' " onclick="toggleHistFlavor(\''+f+'\')">' +f+'</div>';}).join('');
+}
+
+function toggleHistFlavor(f){histFlavors.has(f)?histFlavors.delete(f):histFlavors.add(f);renderHistFlavors();}
+
+function submitHistory(){
+  var bean=document.getElementById('hf-bean').value.trim();
+  if(!bean){document.getElementById('hf-bean').style.borderColor='#E24B4A';document.getElementById('hf-bean').focus();setTimeout(function(){document.getElementById('hf-bean').style.borderColor='';},2000);return;}
+  var gear=document.querySelector('#hf-gear-sel .gear-opt.on');
+  var now=new Date();
+  var dateStr=now.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+  var h={
+    id:nextHistId++,
+    date:dateStr,
+    bean:bean,
+    roaster:document.getElementById('hf-roaster').value.trim(),
+    roast:'',
+    gear:gear?gear.dataset.g:'V60',
+    coffee:parseFloat(document.getElementById('hf-coffee').value)||15,
+    ratio:parseFloat(document.getElementById('hf-ratio').value)||15,
+    temp:parseFloat(document.getElementById('hf-temp').value)||93,
+    grind:parseFloat(document.getElementById('hf-grind').value)||28,
+    time:document.getElementById('hf-time').value.trim(),
+    rating:histRating,
+    cupping:{
+      acid:parseInt(document.getElementById('hs-acid').value)||3,
+      sweet:parseInt(document.getElementById('hs-sweet').value)||3,
+      body:parseInt(document.getElementById('hs-body').value)||3,
+      finish:parseInt(document.getElementById('hs-finish').value)||3
+    },
+    flavors:Array.from(histFlavors),
+    note:document.getElementById('hf-note').value.trim(),
+    recipeId:selectedHistRecipeId,
+  };
+  histEntries.push(h);
+  saveHist();
+  closeOv('hist-ov');
+  renderHistory();
+}
+
+
+/* PERSIST */
+function saveEntries(){
+  try{localStorage.setItem('bl_entries',JSON.stringify(entries));localStorage.setItem('bl_nextid',String(nextId));}catch(e){}
+}
+function loadPersistedEntries(){
+  try{
+    var s=localStorage.getItem('bl_entries');
+    var n=localStorage.getItem('bl_nextid');
+    if(s){var parsed=JSON.parse(s);if(Array.isArray(parsed)&&parsed.length>0)entries=parsed;}
+    if(n&&parseInt(n)>nextId)nextId=parseInt(n);
+  }catch(e){}
+}
+
+/* INIT */
+loadPersistedEntries();
+loadRecipes();
+loadHist();
+renderRecipes();
+renderHistory();
+updateStats();renderBrewScreen();renderAvMain();
+
+</script>
+</body>
+</html>
+
